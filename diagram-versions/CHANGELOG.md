@@ -1,0 +1,102 @@
+# Diagram versions
+
+Each revision is saved as a new pair of files (`agentic-flow-vN.html` + `agentic-flow-vN.png`). Earlier versions are never overwritten.
+
+- **HTML:** open in any browser. Add `?theme=light` or `?theme=dark` to the URL to force a theme.
+- **PNG:** a light-theme export for slides, email or Azure DevOps wiki pages.
+
+> **Client names removed (2026-10-25):** every version's title is now just "Agentic Delivery Flow", with the client and project names taken out. All PNGs were re-exported. Nothing else in the diagrams changed.
+
+## v4.3 · 2026-10-25
+
+- The **"Later"** box now notes that the Sitecore MCP details are settled at implementation: sign-in for automated runs (via the Sitecore authentication API), pointing the Marketer MCP at dev, and confirming the Docs MCP address.
+- For now the diagram only shows that both MCPs are available and where they'll be used. Otherwise identical to v4.2.
+
+## v4.2 · 2026-10-25
+
+Adds Sitecore's two official MCP servers as connectors:
+
+- **🔌 Sitecore Docs MCP** (Sitecore developer documentation) on 4A Blueprint, 6 Contract, 7 FE and BE agents, and 10 Authoring Guide.
+- **🔌 Marketer MCP** (SitecoreAI pages, content, components, assets, Brand Kit) on 12 Test Page Agent (replaces "Sitecore dev"), 17 QA Expert (read), 18 Content Authoring and 19 Content Review (read). It replaces the separate "Brand Kit" tags.
+- The BE Agent and Merge & Deploy keep "Sitecore dev", because the Marketer MCP can't create templates or renderings, or deploy.
+- The footer's connector list now explains the split between the three Sitecore connectors.
+
+## v4.1 · 2026-10-25
+
+ADO state updates (now 16 states):
+
+- **Planning → Finalizing Requirements** (steps 4–6: Spec, Task Planner, Contract).
+- **New: Preparing Authoring Guide** (step 10). Previously this step was part of In Development.
+- **Dev Verification split into two:** **Deployment in Progress** (step 16 · Merge & Deploy) and **Under QA Review** (step 17 · QA Expert → Done if there's no content phase).
+- The footer state list is updated to match.
+
+## v4 · 2026-10-25
+
+Adds the Azure DevOps state layer, so this is a new major version.
+
+- **Every step shows the ADO state** the user story is set to when that step starts. The 14 states are one per stage: New, Requirements, Design, 👤 Awaiting Design Pick, Planning, In Development, Quality Checks, Preview Testing, 👤 Awaiting PR Approval, Dev Verification, Content Authoring, 👤 Awaiting Publish Approval, Done, and 👤 Needs Human (any loop that hits 3 rounds).
+- **The scripted orchestrator sets the state** (no AI cost). Agent-level detail is added as a comment on the story.
+- The ADO state is for **people**. Agents coordinate through the orchestrator and story memory, not the state, which avoids two parallel agents overwriting it.
+- The Blueprint Agent shows no story state, because it runs once and isn't tied to a story.
+- The footer lists all states in order (for the DevOps admin). A **"Show ADO states"** toggle hides them; `?states=off` opens the page with them hidden.
+
+## v3.1 · 2026-10-25
+
+- **Step 2 · PRD Agent** now uses the Figma design (🔌 Figma, if the story has a URL) when writing the PRD.
+- **Step 3 · PRD Review Agent** also checks that the PRD matches the Figma design, and sends mismatches back as gaps.
+- **Step 3B · Prototype Agent** builds the 3 variants from the *final, reviewed* PRD, so a change in review doesn't force new prototypes.
+- Otherwise identical to v3.
+
+## v3 · 2026-10-25
+
+Adds a design step to the flow, so this is a new major version.
+
+- **Design reference branch after the PRD is approved:**
+  - **3A · Figma URL in the story?** If yes, the Figma file is the design reference (🔌 Figma connector).
+  - **3B · Prototype Agent** (only if there's no Figma URL) builds 3 clickable prototype variants from the final PRD.
+  - **3C · 👤 You pick one prototype**, which becomes the design reference.
+  - The design reference is the single source of truth for how the result should look. The Spec Agent records it, the FE Agent builds to it, and the Preview QA Agent checks against it.
+- **Memory files:** app memory is now **AGENTS.md** (shared, in the repo). Developer memory is **CLAUDE.md** (personal, git-ignored).
+- The Plan phase notes it pauses at 3C only when prototypes are needed. The footer adds Figma to the connectors and the design-reference rule.
+- Steps after 3 keep their numbers. The new steps use 3A–3C, like 4A.
+
+## v2.1 · 2026-10-25
+
+- Concept key now includes **🧩 Subagent**: every agent box is a subagent with its own context and tools, and it hands back only its result. There are no per-step tags, because it applies to every agent.
+- Otherwise identical to v2.
+
+## v2 · 2026-10-25
+
+Adds the agentic-concepts layer on top of v1.2 (same flow, steps and swimlanes).
+
+- **Orchestration panel:** scripted by default (fixed order, parallel steps, max-3 loop counts, pauses at gates), running phase by phase from events. AI orchestration only where judgment is needed (🤖 on the Task Planner and Contract Agent).
+- **Phase triggers** in the Phase column: when each phase starts, pauses and resumes.
+- **Memory panel:** app memory, story memory and developer memory, with tags showing what each step reads or writes.
+- **Coloured tags on every step:** 🔌 connectors (Azure DevOps, GitHub, Sitecore, Vercel, browser), 📘 skills, 🪝 hooks, 🧠 memory, 🤖 AI decides.
+- **"Show agentic concepts" toggle** (HTML only) hides the layer to get back the focused v1.2 view. Add `?concepts=off` to the URL to open it hidden.
+- The footer now lists the connectors used, plus "Later" items: worktrees, model choice per agent, observability, evals.
+- The plugin is still a side indicator.
+
+## v1.2 · 2026-10-25
+
+- The category headers now stay visible: when you scroll down in the HTML version, a bar at the top keeps showing all 7 categories, lined up with their lanes. It also follows horizontal scrolling on narrower screens.
+- The diagram content is unchanged from v1.1. The PNG looks the same apart from the version badge, because floating headers only work in the browser.
+
+## v1.1 · 2026-10-25
+
+Small revision of v1. Major versions (v2, v3, …) are kept for structural changes, such as adding the agentic-concepts layer.
+
+- The PRD Review → PRD Agent loop and the Contract Agent → Task Planner loop are now also capped at 3 rounds, then escalate to a human.
+- Every loop in the flow now has the same rule, so the legend and footer state it once for all loops.
+
+## v1 · 2026-10-25
+
+First version: the full flow from user story to published content.
+
+- 7 function-based swimlanes: Product & Requirements, Architecture & Planning, Development, Code Quality & Security, Testing & Validation, Release & Deployment, Content Operations.
+- 21 numbered steps across 4 phases: Plan, Build, Verify & ship, and Content (optional).
+- Human gates: PR approval (step 15) and publish approval (step 21).
+- Fix loops capped at 3 rounds, then a human: quality/security fixes, bug fixes and content review.
+- Loops with no cap decided yet: PRD review → PRD Agent, and Contract Agent → Task Planner.
+- Plugin shown as a side indicator only.
+- Not yet shown: orchestration, memory, skills, hooks and MCP connectors per stage (planned for v2).
