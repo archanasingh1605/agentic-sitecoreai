@@ -7,6 +7,13 @@ Each revision is saved as a new pair of files (`agentic-flow-vN.html` + `agentic
 
 > **Client names removed (2026-10-25):** every version's title is now just "Agentic Delivery Flow", with the client and project names taken out. All PNGs were re-exported. Nothing else in the diagrams changed.
 
+## v4.4 · 2026-10-25
+
+- **Requirements split into two ADO states** (now 17 states): **Drafting Requirements** (step 2 · PRD Agent) and **Reviewing Requirements** (step 3 · PRD Review Agent, and the 3A decision). When the review sends gaps back, the story returns to Drafting Requirements.
+- **Authoring guide attached to the story:** step 10 writes the guide as a Markdown (.md) file, and the orchestrator attaches it to the ADO story. It's replaced whenever the guide is rewritten after a fix round.
+- **The guide is read from the story later:** Test Page Agent (12), QA Expert (17) and Content Authoring Agent (18).
+- A new rule in the footer explains the guide attachment. The footer state list is updated.
+
 ## v4.3 · 2026-10-25
 
 - The **"Later"** box now notes that the Sitecore MCP details are settled at implementation: sign-in for automated runs (via the Sitecore authentication API), pointing the Marketer MCP at dev, and confirming the Docs MCP address.

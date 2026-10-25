@@ -2,9 +2,9 @@
 
 **Purpose:** carry this work into a new Claude Code session with nothing lost.
 **Written:** 2026-10-25, updated at the end of the second session.
-**Current diagram version:** **v4.3** → `diagram-versions/agentic-flow-v4.3.html` (+ `.png`)
+**Current diagram version:** **v4.4** → `diagram-versions/agentic-flow-v4.4.html` (+ `.png`)
 
-> **For the new session (Claude):** read this whole file before replying. Then read `diagram-versions/CHANGELOG.md` and open `diagram-versions/agentic-flow-v4.3.html`. Follow the working preferences in `CLAUDE.md` strictly. Treat everything here as decided unless it's listed under "Open items".
+> **For the new session (Claude):** read this whole file before replying. Then read `diagram-versions/CHANGELOG.md` and open `diagram-versions/agentic-flow-v4.4.html`. Follow the working preferences in `CLAUDE.md` strictly. Treat everything here as decided unless it's listed under "Open items".
 
 ---
 
@@ -89,7 +89,7 @@ The user's working preferences, and all **client-specific project details**, are
 
 ---
 
-## 4. Current flow (v4.3): the full, decided design
+## 4. Current flow (v4.4): the full, decided design
 
 **Swimlanes (7 categories, by function):**
 1. Product & Requirements
@@ -107,9 +107,9 @@ Human gates are drawn as 👤 markers.
 | # | Step / Agent | Lane | What it does | ADO state |
 |---|---|---|---|---|
 | 1 | User story arrives | 1 | Story marked ready in ADO; may include a Figma URL | New |
-| 2 | PRD Agent | 1 | Writes the PRD from the story **+ Figma design if a URL exists** | Requirements |
-| 3 | PRD Review Agent | 1 | Challenges the PRD, **checks it matches Figma**, sends gaps back to 2 (**max 3 rounds**) | Requirements |
-| 3A | Decision: Figma URL in the story? | 1 | Yes → straight to 4 (Figma is the design reference). No → 3B | Requirements |
+| 2 | PRD Agent | 1 | Writes the PRD from the story **+ Figma design if a URL exists** | Drafting Requirements |
+| 3 | PRD Review Agent | 1 | Challenges the PRD, **checks it matches Figma**, sends gaps back to 2 (**max 3 rounds**) | Reviewing Requirements |
+| 3A | Decision: Figma URL in the story? | 1 | Yes → straight to 4 (Figma is the design reference). No → 3B | Reviewing Requirements |
 | 3B | Prototype Agent | 1 | Only if no Figma URL: builds **3 clickable prototype variants from the final, reviewed PRD** | Design |
 | 3C | 👤 Human gate: a person picks one prototype | 1 | The chosen prototype becomes the design reference | 👤 Awaiting Design Pick |
 | 4 | Spec Agent | 1 | Turns the final PRD into the spec, recording the design reference | Finalizing Requirements |
@@ -119,7 +119,7 @@ Human gates are drawn as 👤 markers.
 | 7 | FE Agent ‖ BE Agent (parallel) | 3 | FE: Next.js component. BE: **Sitecore items on dev + YML ready to commit (doesn't commit)** | In Development |
 | 8 | Test & Storybook Agent | 3 | Unit tests + Storybook stories (separate from the FE Agent; an agent never tests its own work) | In Development |
 | 9 | Code Quality Agent ‖ Security Agent (parallel) | 4 | **Local checks before the PR** (Sonar rules, 70% coverage, vulnerability scan). One **combined fix list** → back to 7 (**max 3**) | Quality Checks |
-| 10 | Authoring Guide Agent | 3 | Guide for content authors. **Written before the PR** and shipped in it | Preparing Authoring Guide |
+| 10 | Authoring Guide Agent | 3 | Guide for content authors, as a **Markdown (.md) file**. **Written before the PR** and shipped in it; the orchestrator also **attaches it to the ADO story** (replaced after each fix round). Steps 12, 17 and 18 read it from the story | Preparing Authoring Guide |
 | 11 | PR Agent | 6 | Commits **code + YML + guide**, raises the GitHub PR; Vercel builds a preview | Preview Testing |
 | 12 | Test Page Agent | 5 | Builds a test page on dev **by following the authoring guide**, which also tests the guide | Preview Testing |
 | 13 | Preview QA Agent ‖ Performance Agent (parallel) | 5 | On the preview URL. QA checks the PRD's acceptance criteria **and the design reference**; Performance checks speed | Preview Testing |
@@ -140,8 +140,8 @@ Human gates are drawn as 👤 markers.
 - SonarQube + CodeQL in GitHub remain the final gate on the PR.
 - The design reference (Figma or the chosen prototype) is the single source of truth for how the result looks.
 
-**ADO states: 16, one per stage**
-- In order: New → Requirements → Design* → 👤 Awaiting Design Pick* → Finalizing Requirements → In Development → Quality Checks → Preparing Authoring Guide → Preview Testing → 👤 Awaiting PR Approval → Deployment in Progress → Under QA Review → Content Authoring* → 👤 Awaiting Publish Approval* → Done.
+**ADO states: 17, one per stage**
+- In order: New → Drafting Requirements → Reviewing Requirements → Design* → 👤 Awaiting Design Pick* → Finalizing Requirements → In Development → Quality Checks → Preparing Authoring Guide → Preview Testing → 👤 Awaiting PR Approval → Deployment in Progress → Under QA Review → Content Authoring* → 👤 Awaiting Publish Approval* → Done.
 - Plus 👤 Needs Human at any time. *Only when that step is used.
 - **The scripted orchestrator sets the state** (no AI cost). Per-agent detail goes in as a **comment on the story**.
 - The state is for **people**. Agents coordinate through the orchestrator and story memory, not the state, to avoid race conditions.
@@ -180,8 +180,8 @@ Human gates are drawn as 👤 markers.
 |---|---|
 | `HANDOFF.md` | This file (generic, committed) |
 | `CLAUDE.md` | **Private, git-ignored.** Working preferences + client-specific project details |
-| `diagram-versions/agentic-flow-v4.3.html` / `.png` | **Current diagram** |
-| `diagram-versions/agentic-flow-v1…v4.2.html/.png` | All earlier versions (v1, v1.1, v1.2, v2, v2.1, v3, v3.1, v4, v4.1, v4.2). Never overwritten, except the one-off removal of client names from every title |
+| `diagram-versions/agentic-flow-v4.4.html` / `.png` | **Current diagram** |
+| `diagram-versions/agentic-flow-v1…v4.3.html/.png` | All earlier versions (v1, v1.1, v1.2, v2, v2.1, v3, v3.1, v4, v4.1, v4.2, v4.3). Never overwritten, except the one-off removal of client names from every title |
 | `diagram-versions/CHANGELOG.md` | What changed in every version |
 | `side-notes.md` | The user's parked side notes (see section 7) |
 | `reference-agentic-team-flow-video.md` | Paraphrased summary of the YouTube reference video (reference only) |
@@ -207,8 +207,8 @@ Human gates are drawn as 👤 markers.
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1600,<PAGE_HEIGHT> --virtual-time-budget=3000 --screenshot="diagram-versions/agentic-flow-vX.png" "file://$PWD/diagram-versions/agentic-flow-vX.html?theme=light"
 ```
 
-- **Page height:** v4.3 is 6451px. Measuring is slow; reuse the previous PNG's height (pixels ÷ 2) when the layout height hasn't changed.
-- **How it was measured:** a wrapper page in the scratchpad iframes the diagram, with `--allow-file-access-from-files --dump-dom`, and prints `documentElement.scrollHeight`.
+- **Page height:** v4.4 is 6604px. Measuring is slow; reuse the previous PNG's height (pixels ÷ 2) when the layout height hasn't changed.
+- **How to measure:** copy the HTML to the scratchpad with a script before `</body>` that writes `documentElement.scrollHeight` into a `data-h` attribute on `<body>`, then run headless Chrome with `--dump-dom` and read `data-h`. (The older iframe wrapper started hanging.)
 
 ---
 
@@ -261,4 +261,4 @@ Human gates are drawn as 👤 markers.
 2. Optionally run `/idea-session` first.
 3. Paste this prompt:
 
-> Read `HANDOFF.md` in this folder in full, then `diagram-versions/CHANGELOG.md`, and look at `diagram-versions/agentic-flow-v4.3.png`. We're continuing the agentic architecture diagram for my PM. The current version is v4.3. Follow the working preferences in `CLAUDE.md`. Confirm in a few lines that you have the context, list the open items, and then wait for my next instruction.
+> Read `HANDOFF.md` in this folder in full, then `diagram-versions/CHANGELOG.md`, and look at `diagram-versions/agentic-flow-v4.4.png`. We're continuing the agentic architecture diagram for my PM. The current version is v4.4. Follow the working preferences in `CLAUDE.md`. Confirm in a few lines that you have the context, list the open items, and then wait for my next instruction.
