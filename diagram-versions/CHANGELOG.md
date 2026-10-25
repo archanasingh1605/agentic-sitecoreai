@@ -7,6 +7,27 @@ Each revision is saved as a new pair of files (`agentic-flow-vN.html` + `agentic
 
 > **Client names removed (2026-10-25):** every version's title is now just "Agentic Delivery Flow", with the client and project names taken out. All PNGs were re-exported. Nothing else in the diagrams changed.
 
+## v5 · 2026-10-25
+
+Adds a new step to the flow (2A), so this is a new major version.
+
+- **New step 2A · 👤 Story owner adds the missing details:**
+  - The PRD Agent first checks the story against a 📘 Story readiness checklist.
+  - If details are missing, it asks the story owner in an ADO comment (@mention). The story moves to the new state **👤 Awaiting Story Details** (18 states in total).
+  - The owner updates the story and moves it back to Drafting Requirements, and the PRD Agent drafts again.
+  - This loop has no round cap, because a person is already answering. A reminder goes out after 2 working days.
+  - PRD Review gaps still go back to the PRD Agent, which uses 2A if it needs a person.
+  - Arrows: "missing details" (2 → 2A), "details added" (2A → 2), and "story complete" (2 → 3, drawn on the right). The review loop now runs on the left.
+- **New MCP connectors:**
+  - **Next.js DevTools MCP** on the FE Agent (7): live build, runtime and type errors from the local dev server.
+  - **Playwright MCP** on the Test & Storybook Agent (8, checking stories in a browser), Preview QA (13) and QA Expert (17). It replaces the generic "Browser" connector.
+  - **Storybook MCP\*** on the FE Agent (7: find existing components and their docs to reuse, instead of building near-duplicates) and on 8 (write and test stories). *Needs a Storybook upgrade from 8.6 to 10, which is listed under "Later".
+  - **Chrome DevTools MCP** on the Performance Agent (13).
+  - **Vercel MCP** on 11, 13 (both agents), 14 (logs) and 16. It replaces the plain "Vercel" connector.
+- **The Preview QA Agent now adds Playwright end-to-end tests to the PR.**
+- The footer has a new rule, the updated connector list and state list, and new "Later" items (Vercel sign-in, Storybook upgrade).
+- Every step below 2 moved down one row; step numbers are unchanged.
+
 ## v4.4 · 2026-10-25
 
 - **Requirements split into two ADO states** (now 17 states): **Drafting Requirements** (step 2 · PRD Agent) and **Reviewing Requirements** (step 3 · PRD Review Agent, and the 3A decision). When the review sends gaps back, the story returns to Drafting Requirements.
