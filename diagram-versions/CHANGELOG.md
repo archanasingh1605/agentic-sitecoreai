@@ -7,6 +7,23 @@ Each revision is saved as a new pair of files (`agentic-flow-vN.html` + `agentic
 
 > **Client names removed (2026-10-25):** every version's title is now just "Agentic Delivery Flow", with the client and project names taken out. All PNGs were re-exported. Nothing else in the diagrams changed.
 
+## v6 · 2026-10-25
+
+Reorders the Build phase (review before test), so this is a new major version.
+
+- **Created by Archana Singh** is now shown in the header.
+- **Build triad: develop → review → test, run per task.**
+  - Steps 8 and 9 swapped. **8 is now Code Quality ‖ Security (review)**, and **9 is now Test & Storybook (test)**. Every MCP, skill, hook and memory tag moved with its step.
+  - The **70% coverage check moved** from Code Quality to the Test step, because tests only exist after review.
+  - **New loop:** failing tests go back to 7 (max 3). Review fixes still go back to 7 (max 3).
+  - **New ADO state "Testing"** for step 9, giving 19 states in total.
+  - The orchestrator runs the triad per task, in the Task Planner's order. This is shown in the Orchestration panel and the Build phase rail.
+  - It isn't labelled TDD on purpose: TDD means the tests are written before the code.
+- **Spec-driven development (SDD) marked.** A new "Development approach" panel explains SDD and the triad. 📐 SDD markers are on steps 2–7, 13 and 17, and 🔁 Triad markers are on 7, 8 and 9.
+- **Done per component:** code + business logic + unit tests + Storybook story, kept together. This is a new rule in the footer.
+- **Skill names, one per agent:** each 📘 tag now shows the skill's name for implementation, in kebab-case (for example `write-prd`, `plan-tasks`, `raise-bugs`). Agents that had no skill now have one, and a new footer box lists agent → skill.
+  - Shared rules (Sonar, Sitecore templates, brand standards and so on) now live in AGENTS.md, and skills point to them. The memory panel and concept key explain this.
+
 ## v5 · 2026-10-25
 
 Adds a new step to the flow (2A), so this is a new major version.
