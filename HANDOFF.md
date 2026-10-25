@@ -191,6 +191,7 @@ Human gates are drawn as 👤 markers.
 | Path | What it is |
 |---|---|
 | `HANDOFF.md` | This file (generic, committed) |
+| `docs/reference-guide.md` | Shareable reference guide to the v6 flow (exported from the Claude doc "Agentic Delivery Flow: Reference Guide"), with `docs/images/flow-at-a-glance.png` |
 | `CLAUDE.md` | **Private, git-ignored.** Working preferences + client-specific project details |
 | `diagram-versions/agentic-flow-v6.html` / `.png` | **Current diagram** |
 | `diagram-versions/agentic-flow-v1…v5.html/.png` | All earlier versions (v1, v1.1, v1.2, v2, v2.1, v3, v3.1, v4, v4.1, v4.2, v4.3, v4.4, v5). Never overwritten, except the one-off removal of client names from every title |
