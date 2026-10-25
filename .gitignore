@@ -1,0 +1,14 @@
+# Input documents (photos of the repo's CLAUDE.md and the handwritten flow sketch).
+# They contain client details, so they stay local and are never committed.
+inputs/
+
+# Private Claude memory: working preferences + client-specific project details
+CLAUDE.md
+CLAUDE.local.md
+
+# Secrets (the GitHub token lives in .env)
+.env
+.env.*
+
+# macOS
+.DS_Store
