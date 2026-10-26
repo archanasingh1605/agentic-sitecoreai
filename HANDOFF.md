@@ -2,9 +2,9 @@
 
 **Purpose:** carry this work into a new Claude Code session with nothing lost.
 **Written:** 2026-10-25, updated at the end of the second session.
-**Current diagram version:** **v4.3** → `diagram-versions/agentic-flow-v4.3.html` (+ `.png`)
+**Current diagram version:** **v6** → `diagram-versions/agentic-flow-v6.html` (+ `.png`)
 
-> **For the new session (Claude):** read this whole file before replying. Then read `diagram-versions/CHANGELOG.md` and open `diagram-versions/agentic-flow-v4.3.html`. Follow the working preferences in `CLAUDE.md` strictly. Treat everything here as decided unless it's listed under "Open items".
+> **For the new session (Claude):** read this whole file before replying. Then read `diagram-versions/CHANGELOG.md` and open `diagram-versions/agentic-flow-v6.html`. Follow the working preferences in `CLAUDE.md` strictly. Treat everything here as decided unless it's listed under "Open items".
 
 ---
 
@@ -55,7 +55,7 @@ The user's working preferences, and all **client-specific project details**, are
 - Tailwind semantic tokens only; themes via `data-theme`; RTL via `rtl:`.
 - Zustand store; next-intl.
 
-**Testing:** Jest + RTL. The repo `CLAUDE.md` says coverage thresholds of 80% lines / 70% branches. Every component needs 4 test cases: valid data, missing fields, editing mode, error state.
+**Testing:** Jest + RTL for unit tests; **Playwright for QA / end-to-end automation tests**. The repo `CLAUDE.md` says coverage thresholds of 80% lines / 70% branches. Every component needs 4 test cases: valid data, missing fields, editing mode, error state.
 
 **SonarQube (blocks merges)**
 - Complexity ≤15; functions ≤75 lines; files ≤300 lines.
@@ -89,7 +89,7 @@ The user's working preferences, and all **client-specific project details**, are
 
 ---
 
-## 4. Current flow (v4.3): the full, decided design
+## 4. Current flow (v6): the full, decided design
 
 **Swimlanes (7 categories, by function):**
 1. Product & Requirements
@@ -107,9 +107,10 @@ Human gates are drawn as 👤 markers.
 | # | Step / Agent | Lane | What it does | ADO state |
 |---|---|---|---|---|
 | 1 | User story arrives | 1 | Story marked ready in ADO; may include a Figma URL | New |
-| 2 | PRD Agent | 1 | Writes the PRD from the story **+ Figma design if a URL exists** | Requirements |
-| 3 | PRD Review Agent | 1 | Challenges the PRD, **checks it matches Figma**, sends gaps back to 2 (**max 3 rounds**) | Requirements |
-| 3A | Decision: Figma URL in the story? | 1 | Yes → straight to 4 (Figma is the design reference). No → 3B | Requirements |
+| 2 | PRD Agent | 1 | First checks the story against a **Story readiness checklist**; if details are missing → 2A. Then writes the PRD from the story **+ Figma design if a URL exists** | Drafting Requirements |
+| 2A | 👤 Human gate: the story owner adds the missing details | 1 | Questions arrive as an ADO comment (@mention). The owner updates the story and **moves it back to Drafting Requirements** to resume. **No round cap** (a person is already answering); reminder after 2 working days | 👤 Awaiting Story Details |
+| 3 | PRD Review Agent | 1 | Challenges the PRD, **checks it matches Figma**, sends gaps back to 2 (**max 3 rounds**); if 2 needs a person to fill a gap, it uses 2A | Reviewing Requirements |
+| 3A | Decision: Figma URL in the story? | 1 | Yes → straight to 4 (Figma is the design reference). No → 3B | Reviewing Requirements |
 | 3B | Prototype Agent | 1 | Only if no Figma URL: builds **3 clickable prototype variants from the final, reviewed PRD** | Design |
 | 3C | 👤 Human gate: a person picks one prototype | 1 | The chosen prototype becomes the design reference | 👤 Awaiting Design Pick |
 | 4 | Spec Agent | 1 | Turns the final PRD into the spec, recording the design reference | Finalizing Requirements |
@@ -117,16 +118,16 @@ Human gates are drawn as 👤 markers.
 | 5 | Task Planner Agent | 2 | (Ticketing + Decision agents merged.) Splits the spec into tasks, recording files touched and dependencies; plans parallel / sequential / mixed. **Dependencies decide, not the task count** | Finalizing Requirements |
 | 6 | Contract Agent | 2 | **After the Task Planner.** Agrees the base model (template fields, rendering name, component props). Can send the plan back to 5 if it finds a new dependency (**max 3**) | Finalizing Requirements |
 | 7 | FE Agent ‖ BE Agent (parallel) | 3 | FE: Next.js component. BE: **Sitecore items on dev + YML ready to commit (doesn't commit)** | In Development |
-| 8 | Test & Storybook Agent | 3 | Unit tests + Storybook stories (separate from the FE Agent; an agent never tests its own work) | In Development |
-| 9 | Code Quality Agent ‖ Security Agent (parallel) | 4 | **Local checks before the PR** (Sonar rules, 70% coverage, vulnerability scan). One **combined fix list** → back to 7 (**max 3**) | Quality Checks |
-| 10 | Authoring Guide Agent | 3 | Guide for content authors. **Written before the PR** and shipped in it | Preparing Authoring Guide |
-| 11 | PR Agent | 6 | Commits **code + YML + guide**, raises the GitHub PR; Vercel builds a preview | Preview Testing |
+| 8 | Code Quality Agent ‖ Security Agent (parallel) | 4 | **Triad: review.** Local checks before the PR (Sonar rules, vulnerability scan). One **combined fix list** → back to 7 (**max 3**) | Quality Checks |
+| 9 | Test & Storybook Agent | 3 | **Triad: test.** Unit tests (the 4 required cases) + Storybook stories for the reviewed code, **checks the stories in a browser (Playwright MCP)**, **70% coverage**; Storybook MCP once Storybook is on v10. **Failing tests → back to 7 (max 3)**. Separate from the FE Agent: an agent never tests its own work | Testing |
+| 10 | Authoring Guide Agent | 3 | Guide for content authors, as a **Markdown (.md) file**. **Written before the PR** and shipped in it; the orchestrator also **attaches it to the ADO story** (replaced after each fix round). Steps 12, 17 and 18 read it from the story | Preparing Authoring Guide |
+| 11 | PR Agent | 6 | Commits **code + YML + guide**, raises the GitHub PR; **checks the Vercel preview build (Vercel MCP)** | Preview Testing |
 | 12 | Test Page Agent | 5 | Builds a test page on dev **by following the authoring guide**, which also tests the guide | Preview Testing |
-| 13 | Preview QA Agent ‖ Performance Agent (parallel) | 5 | On the preview URL. QA checks the PRD's acceptance criteria **and the design reference**; Performance checks speed | Preview Testing |
+| 13 | Preview QA Agent ‖ Performance Agent (parallel) | 5 | On the preview URL. QA checks the PRD's acceptance criteria **and the design reference**, then **adds Playwright end-to-end tests to the PR**; Performance checks speed (**Chrome DevTools MCP**) | Preview Testing |
 | 14 | Bug Raising Agent (only if issues) | 5 | Logs bugs as **ADO child items of the story** + reports to the FE/BE agent → back to 7 (**max 3**) | Preview Testing |
 | 15 | 👤 Human gate: you approve the PR | 6 | In GitHub; the flow pauses here | 👤 Awaiting PR Approval |
-| 16 | Merge & Deploy Agent | 6 | Merges; deploys to Vercel + Sitecore dev | Deployment in Progress |
-| 17 | QA Expert | 5 | Full test on dev against the final spec, using the guide | Under QA Review → Done if no content phase |
+| 16 | Merge & Deploy Agent | 6 | Merges; deploys to Vercel + Sitecore dev; confirms the deploy (Vercel MCP) | Deployment in Progress |
+| 17 | QA Expert | 5 | Full test on dev against the final spec, using the guide (Playwright MCP) | Under QA Review → Done if no content phase |
 | 18 | Content Authoring Agent (optional) | 7 | Uses the **Sitecore Brand Kit**; prepares pages (**dev first**, real authoring environment later) | Content Authoring |
 | 19 | Content Review Agent | 7 | Brand and standards check; feedback to 18 (**max 3**) | Content Authoring |
 | 20 | Final Page Report | 7 | **A script, not AI.** Preview URL, item path and GUID per page | Content Authoring |
@@ -136,12 +137,15 @@ Human gates are drawn as 👤 markers.
 - **Every loop is capped at 3 rounds, then escalates to a human.** ADO state becomes 👤 **Needs Human**.
 - Fix rounds return the story to In Development.
 - An agent never reviews its own work.
+- **Build triad per task (v6):** develop (7) → review (8) → test (9), run by the orchestrator for each task in the Task Planner's order. Review and test findings loop back to 7 (max 3). Deliberately **not called TDD**: TDD means tests are written before the code; the user chose develop → review → test.
+- **Spec-driven development (SDD):** steps 2–6 shape the spec, 7 builds from it, and 13 and 17 check against it. Marked 📐 SDD on the diagram, with the triad marked 🔁.
+- **Done per component:** code + business logic + unit tests + Storybook story, kept together (matches how the team works today).
 - Agents hand work over through **story memory**.
 - SonarQube + CodeQL in GitHub remain the final gate on the PR.
 - The design reference (Figma or the chosen prototype) is the single source of truth for how the result looks.
 
-**ADO states: 16, one per stage**
-- In order: New → Requirements → Design* → 👤 Awaiting Design Pick* → Finalizing Requirements → In Development → Quality Checks → Preparing Authoring Guide → Preview Testing → 👤 Awaiting PR Approval → Deployment in Progress → Under QA Review → Content Authoring* → 👤 Awaiting Publish Approval* → Done.
+**ADO states: 19, one per stage**
+- In order: New → Drafting Requirements → 👤 Awaiting Story Details* → Reviewing Requirements → Design* → 👤 Awaiting Design Pick* → Finalizing Requirements → In Development → Quality Checks → Testing → Preparing Authoring Guide → Preview Testing → 👤 Awaiting PR Approval → Deployment in Progress → Under QA Review → Content Authoring* → 👤 Awaiting Publish Approval* → Done.
 - Plus 👤 Needs Human at any time. *Only when that step is used.
 - **The scripted orchestrator sets the state** (no AI cost). Per-agent detail goes in as a **comment on the story**.
 - The state is for **people**. Agents coordinate through the orchestrator and story memory, not the state, to avoid race conditions.
@@ -163,12 +167,20 @@ Human gates are drawn as 👤 markers.
 - **AI harness:** Claude Code (interactive) + Claude Agent SDK / Claude Code in CI (automated). Don't build a custom harness.
 - **Plugin:** the whole flow is packaged as one team plugin. Shown only as a side indicator.
 - **Skills (📘), hooks (🪝) and connectors (🔌 via MCP)** are tagged on each step.
-  - **Connectors:** Azure DevOps, GitHub, Sitecore dev, Vercel, Figma, Browser, plus (from v4.2) Sitecore's two official MCP servers:
+  - **Connectors (v5):** Azure DevOps, GitHub, Sitecore dev, Figma, plus these official MCP servers:
+    - **Vercel MCP** on 11, 13, 14 (logs), 16. Not on the FE Agent: nothing is deployed while it codes.
+    - **Next.js DevTools MCP** on 7 FE (live errors from the local Next.js 16 dev server).
+    - **Playwright MCP** on 8 (stories), 13 Preview QA, 17 QA Expert. It replaced the generic "Browser" connector.
+    - **Storybook MCP** on 7 FE (find existing components to reuse) and 8 (write and test stories). Needs Storybook 10 (the project is on 8.6) and is still in preview.
+    - **Chrome DevTools MCP** on 13 Performance.
+    - From v4.2, Sitecore's two official MCP servers:
     - **Sitecore Docs MCP** (developer docs) on 4A Blueprint, 6 Contract, 7 FE + BE, 10 Authoring Guide.
     - **Marketer MCP** (pages, content, components, Brand Kit) on 12 Test Page, 17 QA Expert (read), 18 Content Authoring, 19 Content Review (read). It can't create templates or renderings, so the BE Agent keeps the Sitecore CLI.
   - **Hooks:** auto-format + lint (FE), dev-only safety lock (BE), run tests on change (Test & Storybook), pre-commit checks (PR Agent: existing secretlint and lint-staged).
-  - The skill and hook names are **suggestions**, not existing repo files.
-- **Later (in the footer, not active):** worktrees for parallel agents, model choice per agent, observability, evals, and the Sitecore MCP setup details (v4.3).
+  - **Skills (v6): one per agent**, so each person can own and build one independently. Names use kebab-case, verb-object: write-prd, review-prd, build-prototypes, write-spec, pick-blueprint, plan-tasks, define-contract, build-component, create-sitecore-items, check-code-quality, scan-security, write-tests-and-stories, write-authoring-guide, raise-pr, build-test-page, test-preview, check-performance, raise-bugs, merge-and-deploy, run-full-qa, author-content, review-content. Step 20 is a script, so it has no skill.
+  - Shared rules (Sonar, security, Sitecore template and serialization rules, component and test patterns, design tokens, brand voice and standards) go in **AGENTS.md**. Skills point to them, so the rules aren't copied into several skills.
+  - Hook names are still **suggestions**, not existing repo files.
+- **Later (in the footer, not active):** worktrees for parallel agents, model choice per agent, observability, evals, the Sitecore and Vercel MCP setup details, and the Storybook 8.6 → 10 upgrade.
 - **On hold:** `.claudeignore`-style exclusions, and writing the shared `AGENTS.md`.
   - **Teacher note given:** `.claudeignore` isn't an official Claude Code feature; the equivalent is deny rules in `.claude/settings.json`.
 
@@ -179,9 +191,10 @@ Human gates are drawn as 👤 markers.
 | Path | What it is |
 |---|---|
 | `HANDOFF.md` | This file (generic, committed) |
+| `docs/reference-guide.md` | Shareable reference guide to the v6 flow (exported from the Claude doc "Agentic Delivery Flow: Reference Guide"), with `docs/images/flow-at-a-glance.png` |
 | `CLAUDE.md` | **Private, git-ignored.** Working preferences + client-specific project details |
-| `diagram-versions/agentic-flow-v4.3.html` / `.png` | **Current diagram** |
-| `diagram-versions/agentic-flow-v1…v4.2.html/.png` | All earlier versions (v1, v1.1, v1.2, v2, v2.1, v3, v3.1, v4, v4.1, v4.2). Never overwritten, except the one-off removal of client names from every title |
+| `diagram-versions/agentic-flow-v6.html` / `.png` | **Current diagram** |
+| `diagram-versions/agentic-flow-v1…v5.html/.png` | All earlier versions (v1, v1.1, v1.2, v2, v2.1, v3, v3.1, v4, v4.1, v4.2, v4.3, v4.4, v5). Never overwritten, except the one-off removal of client names from every title |
 | `diagram-versions/CHANGELOG.md` | What changed in every version |
 | `side-notes.md` | The user's parked side notes (see section 7) |
 | `reference-agentic-team-flow-video.md` | Paraphrased summary of the YouTube reference video (reference only) |
@@ -207,8 +220,8 @@ Human gates are drawn as 👤 markers.
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1600,<PAGE_HEIGHT> --virtual-time-budget=3000 --screenshot="diagram-versions/agentic-flow-vX.png" "file://$PWD/diagram-versions/agentic-flow-vX.html?theme=light"
 ```
 
-- **Page height:** v4.3 is 6451px. Measuring is slow; reuse the previous PNG's height (pixels ÷ 2) when the layout height hasn't changed.
-- **How it was measured:** a wrapper page in the scratchpad iframes the diagram, with `--allow-file-access-from-files --dump-dom`, and prints `documentElement.scrollHeight`.
+- **Page height:** v6 is 8251px. Measuring is slow; reuse the previous PNG's height (pixels ÷ 2) when the layout height hasn't changed.
+- **How to measure:** copy the HTML to the scratchpad with a script before `</body>` that writes `documentElement.scrollHeight` into a `data-h` attribute on `<body>`, then run headless Chrome with `--dump-dom` and read `data-h`. (The older iframe wrapper started hanging.)
 
 ---
 
@@ -228,8 +241,10 @@ Human gates are drawn as 👤 markers.
 5. **Serialization tooling details** *(parked)*.
 6. Writing `AGENTS.md` and `.claudeignore`-style exclusions: **on hold**.
 7. Possibly publishing the diagram as a shareable artifact link for the PM. This was offered; the user should check client-confidentiality first.
-8. **Sitecore MCP setup, at implementation:** sign-in for automated runs (a Sitecore authentication API exists), pointing the Marketer MCP at dev, and the Docs MCP address.
+8. **Sitecore and Vercel MCP setup, at implementation:** sign-in for automated runs (a Sitecore authentication API exists; Vercel MCP uses a browser sign-in), pointing the Marketer MCP at dev, and the Docs MCP address.
 9. A community Sitecore MCP (open source, not supported by Sitecore) was offered for the BE Agent and **not added**. The BE Agent keeps the Sitecore CLI.
+10. **Storybook upgrade 8.6 → 10** before the Storybook MCP can be used.
+11. **Playwright details to confirm:** where the existing Playwright tests live and run (repo folder, CI job), so the end-to-end tests the Preview QA Agent adds follow the same setup.
 
 **Resolved; don't re-ask**
 - **Names:** PRD Review Agent; Task Planner Agent (merged Ticketing + Decision); Test & Storybook Agent; Test Page Agent; Merge & Deploy Agent; Final Page Report (script).
@@ -261,4 +276,4 @@ Human gates are drawn as 👤 markers.
 2. Optionally run `/idea-session` first.
 3. Paste this prompt:
 
-> Read `HANDOFF.md` in this folder in full, then `diagram-versions/CHANGELOG.md`, and look at `diagram-versions/agentic-flow-v4.3.png`. We're continuing the agentic architecture diagram for my PM. The current version is v4.3. Follow the working preferences in `CLAUDE.md`. Confirm in a few lines that you have the context, list the open items, and then wait for my next instruction.
+> Read `HANDOFF.md` in this folder in full, then `diagram-versions/CHANGELOG.md`, and look at `diagram-versions/agentic-flow-v6.png`. We're continuing the agentic architecture diagram for my PM. The current version is v6. Follow the working preferences in `CLAUDE.md`. Confirm in a few lines that you have the context, list the open items, and then wait for my next instruction.

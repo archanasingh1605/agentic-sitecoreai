@@ -7,6 +7,51 @@ Each revision is saved as a new pair of files (`agentic-flow-vN.html` + `agentic
 
 > **Client names removed (2026-10-25):** every version's title is now just "Agentic Delivery Flow", with the client and project names taken out. All PNGs were re-exported. Nothing else in the diagrams changed.
 
+## v6 · 2026-10-25
+
+Reorders the Build phase (review before test), so this is a new major version.
+
+- **Created by Archana Singh** is now shown in the header.
+- **Build triad: develop → review → test, run per task.**
+  - Steps 8 and 9 swapped. **8 is now Code Quality ‖ Security (review)**, and **9 is now Test & Storybook (test)**. Every MCP, skill, hook and memory tag moved with its step.
+  - The **70% coverage check moved** from Code Quality to the Test step, because tests only exist after review.
+  - **New loop:** failing tests go back to 7 (max 3). Review fixes still go back to 7 (max 3).
+  - **New ADO state "Testing"** for step 9, giving 19 states in total.
+  - The orchestrator runs the triad per task, in the Task Planner's order. This is shown in the Orchestration panel and the Build phase rail.
+  - It isn't labelled TDD on purpose: TDD means the tests are written before the code.
+- **Spec-driven development (SDD) marked.** A new "Development approach" panel explains SDD and the triad. 📐 SDD markers are on steps 2–7, 13 and 17, and 🔁 Triad markers are on 7, 8 and 9.
+- **Done per component:** code + business logic + unit tests + Storybook story, kept together. This is a new rule in the footer.
+- **Skill names, one per agent:** each 📘 tag now shows the skill's name for implementation, in kebab-case (for example `write-prd`, `plan-tasks`, `raise-bugs`). Agents that had no skill now have one, and a new footer box lists agent → skill.
+  - Shared rules (Sonar, Sitecore templates, brand standards and so on) now live in AGENTS.md, and skills point to them. The memory panel and concept key explain this.
+
+## v5 · 2026-10-25
+
+Adds a new step to the flow (2A), so this is a new major version.
+
+- **New step 2A · 👤 Story owner adds the missing details:**
+  - The PRD Agent first checks the story against a 📘 Story readiness checklist.
+  - If details are missing, it asks the story owner in an ADO comment (@mention). The story moves to the new state **👤 Awaiting Story Details** (18 states in total).
+  - The owner updates the story and moves it back to Drafting Requirements, and the PRD Agent drafts again.
+  - This loop has no round cap, because a person is already answering. A reminder goes out after 2 working days.
+  - PRD Review gaps still go back to the PRD Agent, which uses 2A if it needs a person.
+  - Arrows: "missing details" (2 → 2A), "details added" (2A → 2), and "story complete" (2 → 3, drawn on the right). The review loop now runs on the left.
+- **New MCP connectors:**
+  - **Next.js DevTools MCP** on the FE Agent (7): live build, runtime and type errors from the local dev server.
+  - **Playwright MCP** on the Test & Storybook Agent (8, checking stories in a browser), Preview QA (13) and QA Expert (17). It replaces the generic "Browser" connector.
+  - **Storybook MCP\*** on the FE Agent (7: find existing components and their docs to reuse, instead of building near-duplicates) and on 8 (write and test stories). *Needs a Storybook upgrade from 8.6 to 10, which is listed under "Later".
+  - **Chrome DevTools MCP** on the Performance Agent (13).
+  - **Vercel MCP** on 11, 13 (both agents), 14 (logs) and 16. It replaces the plain "Vercel" connector.
+- **The Preview QA Agent now adds Playwright end-to-end tests to the PR.**
+- The footer has a new rule, the updated connector list and state list, and new "Later" items (Vercel sign-in, Storybook upgrade).
+- Every step below 2 moved down one row; step numbers are unchanged.
+
+## v4.4 · 2026-10-25
+
+- **Requirements split into two ADO states** (now 17 states): **Drafting Requirements** (step 2 · PRD Agent) and **Reviewing Requirements** (step 3 · PRD Review Agent, and the 3A decision). When the review sends gaps back, the story returns to Drafting Requirements.
+- **Authoring guide attached to the story:** step 10 writes the guide as a Markdown (.md) file, and the orchestrator attaches it to the ADO story. It's replaced whenever the guide is rewritten after a fix round.
+- **The guide is read from the story later:** Test Page Agent (12), QA Expert (17) and Content Authoring Agent (18).
+- A new rule in the footer explains the guide attachment. The footer state list is updated.
+
 ## v4.3 · 2026-10-25
 
 - The **"Later"** box now notes that the Sitecore MCP details are settled at implementation: sign-in for automated runs (via the Sitecore authentication API), pointing the Marketer MCP at dev, and confirming the Docs MCP address.
