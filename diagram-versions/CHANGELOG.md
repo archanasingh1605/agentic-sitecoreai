@@ -11,6 +11,77 @@ Each revision is saved as a new pair of files (`agentic-flow-vN.html` + `agentic
 
 > **Client names removed (2026-10-25):** every version's title is now just "Agentic Delivery Flow", with the client and project names taken out. All PNGs were re-exported. Nothing else in the diagrams changed.
 
+## Agentic architecture v2.13 · 2026-11-06
+
+`agentic-architecture-v2.13.html` (+ `.png`, 2× export). v2.12 is kept unchanged.
+
+- **Removed the "Status in Azure DevOps and ServiceNow" section.** The ADO states live in the Agentic Delivery Flow v8. The diagram still shows where status appears: the Azure DevOps and ServiceNow boxes on the far right, and the "Status, no extra app" note.
+
+## Agentic architecture v2.12 · 2026-11-06
+
+`agentic-architecture-v2.12.html` (+ `.png`, 2× export). A shorter page. v2.11 is kept unchanged.
+
+- **Removed the footer line.** The "Created by Archana Singh" badge at the top stays.
+- **The "Status in Azure DevOps and ServiceNow" table is now one paragraph.** The ADO states are defined in the Agentic Delivery Flow v8, so the paragraph points there instead of repeating them. It keeps the ServiceNow mapping, which isn't in the flow:
+  - Open when the ADO story is created.
+  - In progress while the flow works or waits on the team's own approvals.
+  - On hold while it waits on someone outside the team.
+  - Resolved when the story is Done.
+
+## Agentic architecture v2.11 · 2026-11-06
+
+`agentic-architecture-v2.11.html` (+ `.png`, 2× export). A tidier page. v2.10 is kept unchanged.
+
+- **Removed the "Show the 'if volume grows' option" button above the diagram.** The dashed "If volume grows" box under the Function App still shows and hides Service Bus when clicked.
+- **Removed the timings from "One ticket in real time"** (0:00, +2 s, +5 s and the others), and the "(timings are illustrative)" note.
+- **Removed the v1 (hybrid) comparison:** the "What changed from v1" table, the "Compare with v1" badge and the footer link. The spike's fallback now reads "a runner on Azure Container Apps" instead of "v1's Container Apps runner".
+
+## Agentic architecture v2.10 · 2026-11-06
+
+`agentic-architecture-v2.10.html` (+ `.png`, 2× export). Makes the safety net's dotted lines easier to read. v2.9 is kept unchanged.
+
+- **Labels on the dotted lines:**
+  - "safety net asks: anything missed?" sits under the ticket sources.
+  - "missed events" sits beside the arrow into Event Grid.
+- The Microsoft Teams box and the note below it moved down slightly to make room. Nothing else changed.
+
+## Agentic architecture v2.9 · 2026-11-05
+
+`agentic-architecture-v2.9.html` (+ `.png`, 2× export). Uses the flow v8's Azure DevOps states and adds ServiceNow states. v2.8 is kept unchanged.
+
+- **Far right:** the Azure DevOps box reads "The v8 states, one per stage, plus an agent comment" (hover to see the list). The ServiceNow box reads "Open · In progress · On hold · Resolved".
+- **New section, "Status in Azure DevOps and ServiceNow":** a table of every v8 ADO state, when it's set, and the ServiceNow state it maps to.
+  - New → Open, plus a comment with the ADO link.
+  - Working stages and the team's own gates (design pick, PR approval, publish approval) → In progress.
+  - 👤 Awaiting Story Details and 👤 Needs Human → On hold.
+  - Done → Resolved.
+  - More ServiceNow states can be added during implementation.
+- **"Status, no extra app" note and journey step 7** now name the states.
+- **Open questions:** "Which states match each step?" is answered and removed. New: does On hold pause the SLA in the client's ServiceNow? (Check with its admin.)
+- The people section and the key moved down slightly to make room.
+
+## Agentic architecture v2.8 · 2026-11-05
+
+`agentic-architecture-v2.8.html` (+ `.png`, 2× export). Status is shown where people already work, and the network pieces are marked. v2.7 is kept unchanged.
+
+- **The live-view stack is gone:** Cosmos DB, Web PubSub, the Agent Control Centre web app and Front Door are removed. With no Control Centre, nothing would read Cosmos DB, and the orchestrator keeps the flow's state itself.
+- **New on the far right, "Where people see status":**
+  - **Azure DevOps:** the story's state at each step, plus an agent comment.
+  - **ServiceNow:** "In progress", comments and "Resolved", only when the ticket started there.
+  - Both are fed from the tools line (step ⑦). The people section now reads "See status, approve", and approvals happen in ADO or GitHub.
+- **The right column is now "Monitoring & cost":** Application Insights (traces, cost per ticket), Monitor + Cost (alerts, budgets, a PM dashboard as an Azure workbook), and a "Status, no extra app" note listing what isn't built.
+- **Network badges:**
+  - 🌐 public door: API Management
+  - 🔒 private endpoint: Event Grid, Foundry, Key Vault, Container Registry, Blob Storage
+  - 🧩 inside the VNet: the Function App, Foundry Agent Service
+  - A **NAT gateway** on the outgoing line gives one fixed outgoing IP.
+  - The Private network box doubles as the legend.
+- **Journey steps renumbered on the diagram:** ⑥ is now on the story-memory arrow, ⑦ on the status updates, ⑧ beside the people section.
+- **Text updates:**
+  - Journey steps 6–8, the "Real time" card, the v1 comparison table and the intro were rewritten.
+  - The Control Centre open question is replaced by "Which ADO and ServiceNow states match each step?"
+  - "Prove in a spike" adds two checks: Event Grid delivery to a private Function App, and hosted agents inside the VNet.
+
 ## Agentic architecture v2.7 · 2026-11-05
 
 `agentic-architecture-v2.7.html` (+ `.png`, 2× export, default view). Shows what is an Azure service and what is our code, the resource group, and the safety net's links. v2.6 is kept unchanged.
