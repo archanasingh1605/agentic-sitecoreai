@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentic Delivery Platform on Azure</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --surface: #ffffff; --text: #1d2330; --muted: #5d6677; --border: #d9dee7;
+    --edge: #3b4252; --gate: #b4235a; --gate-bg: #fdf0f5; --future: #8a93a3;
+    --azure: #0b5cad; --azure-bg: #eef5fd;
+    --z1: #4f46e5; --z2: #be185d; --z3: #2563eb; --z4: #7c3aed;
+    --z5: #0f766e; --z6: #7e22ce; --z7: #ca8a04; --z8: #475569;
+    --ext: #0369a1; --rec: #15803d; --warn: #b45309;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151c; --surface: #1c212b; --text: #e7eaf0; --muted: #9aa3b5; --border: #2e3644;
+      --edge: #c5ccd8; --gate: #f472b6; --gate-bg: #2a1a24; --future: #7d8698;
+      --azure: #7cb8ff; --azure-bg: #152233;
+      --z1: #818cf8; --z2: #f9a8d4; --z3: #60a5fa; --z4: #a78bfa;
+      --z5: #5eead4; --z6: #d8b4fe; --z7: #facc15; --z8: #94a3b8;
+      --ext: #7dd3fc; --rec: #86efac; --warn: #fcd34d;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151c; --surface: #1c212b; --text: #e7eaf0; --muted: #9aa3b5; --border: #2e3644;
+    --edge: #c5ccd8; --gate: #f472b6; --gate-bg: #2a1a24; --future: #7d8698;
+    --azure: #7cb8ff; --azure-bg: #152233;
+    --z1: #818cf8; --z2: #f9a8d4; --z3: #60a5fa; --z4: #a78bfa;
+    --z5: #5eead4; --z6: #d8b4fe; --z7: #facc15; --z8: #94a3b8;
+    --ext: #7dd3fc; --rec: #86efac; --warn: #fcd34d;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .page { padding: 24px 16px 40px; max-width: 1600px; margin: 0 auto; }
+  header.top { display: flex; gap: 24px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; margin-bottom: 16px; }
+  h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0; max-width: 860px; }
+  .badges { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .badge { font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); }
+  .badge.ver { color: var(--text); font-weight: 600; }
+  .rec {
+    border: 1px solid color-mix(in srgb, var(--rec) 45%, transparent); border-left: 4px solid var(--rec);
+    background: var(--surface); border-radius: 10px; padding: 10px 14px; max-width: 470px; font-size: 13px;
+  }
+  .rec strong { display: block; margin-bottom: 2px; color: var(--rec); }
+  .rec span { color: var(--muted); }
+
+  .canvas { position: relative; min-width: 1240px; }
+  .scroll { overflow-x: auto; padding-bottom: 8px; }
+  .band { display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 46px; }
+  .band-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 6px; }
+  .outside { margin-bottom: 52px; }
+  .group {
+    position: relative; z-index: 3; background: var(--surface); border: 1px solid var(--border);
+    border-top: 4px solid var(--ext); border-radius: 10px; padding: 10px 12px;
+  }
+  .group h3 { font-size: 13px; margin: 0 0 6px; }
+  .group .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px; }
+  .ext { border: 1px solid var(--border); border-radius: 7px; padding: 6px 8px; font-size: 12px; color: var(--muted); }
+  .ext b { display: block; color: var(--text); font-size: 12.5px; }
+
+  .azure {
+    position: relative; border: 2px solid var(--azure); border-radius: 14px; background: var(--azure-bg);
+    padding: 34px 16px 16px;
+  }
+  .azure > .tag {
+    position: absolute; top: -13px; left: 16px; background: var(--azure); color: #fff; font-weight: 700;
+    font-size: 12.5px; padding: 3px 10px; border-radius: 999px;
+  }
+  :root[data-theme="dark"] .azure > .tag { color: #0b1220; }
+  .zones { display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 46px; row-gap: 52px; }
+  .zone {
+    position: relative; z-index: 3; background: var(--surface); border: 1px solid var(--border);
+    border-top: 4px solid var(--zc); border-radius: 10px; padding: 10px 12px 12px;
+  }
+  .zone h2 { font-size: 14px; margin: 0 0 2px; display: flex; gap: 8px; align-items: baseline; }
+  .zone h2 .zn { color: var(--surface); background: var(--zc); border-radius: 5px; padding: 0 6px; font-size: 12px; }
+  .zone .why { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
+  .svc { border: 1px solid var(--border); border-left: 3px solid var(--zc); border-radius: 7px; padding: 6px 8px; margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .svc b { color: var(--text); }
+  .svc > b:first-child { display: block; font-size: 12.5px; }
+  .svc i { font-style: normal; font-size: 11px; color: var(--zc); font-weight: 700; }
+  .svc.future { border-style: dashed; opacity: 0.75; }
+  .svc.option { border-style: dashed; }
+  .chip { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); background: var(--surface); margin: 3px 3px 0 0; }
+  .chip.m { color: var(--z4); border-color: color-mix(in srgb, var(--z4) 40%, transparent); }
+
+  .people { margin-top: 26px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .gate { background: var(--gate-bg); border: 2px solid var(--gate); border-radius: 18px; padding: 7px 12px; font-size: 12px; color: var(--muted); }
+  .gate b { display: block; color: var(--gate); font-size: 12.5px; }
+  .gate.future { border-style: dashed; border-color: var(--future); background: transparent; }
+  .gate.future b { color: var(--future); }
+
+  svg.edges { position: absolute; inset: 0; z-index: 4; pointer-events: none; overflow: visible; }
+  .e { stroke: var(--edge); stroke-width: 1.8; fill: none; }
+  .mk path { fill: var(--edge); }
+  .num circle { fill: var(--edge); }
+  .num text { fill: var(--bg); font-size: 11.5px; font-weight: 700; }
+
+  .flow { margin: 18px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 26px; font-size: 12.5px; color: var(--muted); }
+  .flow div { display: grid; grid-template-columns: 22px 1fr; gap: 6px; align-items: start; }
+  .flow .n { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--edge); color: var(--bg); font-weight: 700; font-size: 11.5px; }
+  .flow b { color: var(--text); }
+
+  h2.sec { font-size: 16px; margin: 28px 0 10px; }
+  .panels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 12.5px; }
+  .panel h3 { font-size: 13.5px; margin: 0 0 6px; }
+  .panel p { margin: 0 0 6px; color: var(--muted); }
+  .panel p b, .panel li b { color: var(--text); }
+  .panel ul { margin: 0; padding-left: 16px; color: var(--muted); }
+  .panel li { margin-bottom: 4px; }
+  .panel.teach { border-left: 4px solid var(--warn); }
+  .panel.cost { border-left: 4px solid var(--z4); }
+  .panel.id { border-left: 4px solid var(--z5); }
+  .panel.obs { border-left: 4px solid var(--z7); }
+  .panel.people-p { border-left: 4px solid var(--gate); }
+  .panel.not { border-left: 4px solid var(--z8); }
+  .scale { width: 100%; height: auto; margin: 4px 0 6px; }
+  .scale text { font-size: 11px; fill: var(--muted); }
+  .scale .t { fill: var(--text); font-weight: 700; }
+  .scale rect { fill: var(--surface); stroke: var(--border); }
+  .scale .q { fill: color-mix(in srgb, var(--z2) 14%, var(--surface)); stroke: var(--z2); }
+  .scale .j { fill: color-mix(in srgb, var(--z3) 14%, var(--surface)); stroke: var(--z3); }
+  .scale .j.off { fill: none; stroke-dasharray: 3 3; }
+  .scale line { stroke: var(--edge); stroke-width: 1.4; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--muted); }
+  th { color: var(--text); font-size: 12px; background: color-mix(in srgb, var(--border) 35%, var(--surface)); }
+  td b { color: var(--text); }
+  tr.recommended td { background: color-mix(in srgb, var(--rec) 8%, var(--surface)); }
+  tr.recommended td:first-child b { color: var(--rec); }
+  tr.ruled td { opacity: 0.7; }
+
+  footer { margin-top: 22px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  footer .box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 13px; }
+  footer .box b { display: block; margin-bottom: 4px; }
+  footer .box ul { margin: 0; padding-left: 18px; color: var(--muted); }
+
+  @media (max-width: 1100px) { .panels { grid-template-columns: 1fr; } .flow { grid-template-columns: 1fr; } .people { grid-template-columns: 1fr 1fr; } }
+  @media print { body { background: #fff; } .scroll { overflow: visible; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div>
+      <h1>Agentic Delivery Platform on Azure</h1>
+      <p class="sub">The Azure setup that runs the Agentic Delivery Flow (v7) end to end: it picks up tickets, runs the agents in parallel, calls the right-sized model for each agent and tracks cost and quality. It runs under the team's own service identities, not anyone's personal account. Numbered arrows show how one ticket travels through the platform.</p>
+      <div class="badges">
+        <span class="badge ver">Version 1 · 31 Oct 2026</span>
+        <span class="badge ver">Created by Archana Singh</span>
+        <span class="badge">Draft for PM review</span>
+        <span class="badge">Companion to the Agentic Delivery Flow v7</span>
+      </div>
+    </div>
+    <aside class="rec">
+      <strong>✅ Recommended shape (to prove in a spike)</strong>
+      <span><b>Microsoft Foundry</b> is the AI control plane: models, gateway, identities, tracing and evals. <b>Azure Container Apps</b> is the workbench, where the agents do the coding. A <b>scripted orchestrator</b> runs the flow. The v6/v7 design (skills, hooks, plugin, subagents) carries over unchanged.</span>
+    </aside>
+  </header>
+
+  <div class="scroll">
+  <div class="canvas" id="canvas">
+
+    <!-- Outside Azure -->
+    <div class="band outside">
+      <div style="grid-column:1 / 3">
+        <div class="band-title">Outside Azure · where work comes from</div>
+        <div class="group" id="sources">
+          <h3>🎫 Ticket sources</h3>
+          <div class="row">
+            <div class="ext"><b>ServiceNow</b>Operations tickets: bugs and enhancements</div>
+            <div class="ext"><b>Azure DevOps Boards</b>Stories, states, comments, the authoring guide, bugs</div>
+          </div>
+        </div>
+      </div>
+      <div style="grid-column:3 / 5">
+        <div class="band-title">Outside Azure · where the work lands</div>
+        <div class="group" id="delivery">
+          <h3>🚚 Delivery systems (unchanged)</h3>
+          <div class="row">
+            <div class="ext"><b>GitHub</b>Code host and PRs. SonarQube and CodeQL checks stay</div>
+            <div class="ext"><b>Vercel</b>Preview URL per PR; Next.js deploys</div>
+            <div class="ext"><b>Sitecore AI (XM Cloud)</b>Shared dev environment, Marketer MCP, CLI</div>
+            <div class="ext"><b>Figma · Sitecore Docs MCP</b>Design reference; Sitecore developer docs</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Azure -->
+    <div class="azure" id="azure">
+      <span class="tag">☁️ Azure subscription for the agent platform · its own budget · dev / test / prod</span>
+      <div class="zones">
+        <div class="zone" id="z1" style="--zc:var(--z1)">
+          <h2><span class="zn">A</span> Intake &amp; triggers</h2>
+          <p class="why">How tickets and approvals get in</p>
+          <div class="svc"><b>Azure API Management</b>One secure entry point for webhooks from ServiceNow, Azure DevOps and GitHub. It checks each sender. The same instance is also the AI gateway (D).</div>
+          <div class="svc"><b>Azure Functions · intake listener</b>Turns each event into a queue message. A timer also checks every few minutes, in case a webhook is missed.</div>
+          <div class="svc"><b>0 · Intake Agent</b><span class="chip m">🧮 Small</span> Sorts tickets, spots duplicates and links ServiceNow to ADO. It runs on the workbench (C).</div>
+          <div class="svc future"><b>Later: Teams chat</b>Content authors give demands by chat (Azure Bot Service). Not in scope now.</div>
+        </div>
+
+        <div class="zone" id="z2" style="--zc:var(--z2)">
+          <h2><span class="zn">B</span> Orchestration</h2>
+          <p class="why">The scripted conductor: no AI cost</p>
+          <div class="svc"><b>Azure Durable Functions</b><i>with the Durable Task Scheduler</i> Runs one orchestration per story: fixed order, parallel steps, loop counts (max 3). It sets ADO states and keeps ServiceNow in step. At a 👤 gate it <b>sleeps at no cost</b> for hours or days until the approval event arrives.</div>
+          <div class="svc"><b>Azure Service Bus</b>A queue of agent tasks. One session per story keeps that story's steps in order. Messages that keep failing go to a dead-letter queue → 👤 Needs Human.</div>
+          <div class="svc"><b>WIP limit (setting)</b>Caps how many stories are in Build at once. It protects model quotas, the shared Sitecore dev environment and reviewers' time.</div>
+        </div>
+
+        <div class="zone" id="z3" style="--zc:var(--z3)">
+          <h2><span class="zn">C</span> Agent runtime: the workbench</h2>
+          <p class="why">Where agents read, write and test code</p>
+          <div class="svc"><b>Azure Container Apps jobs · agent runner</b>One short-lived container per agent step. It starts when a task is queued and stops when the step is done. It <b>scales out with the queue</b> (KEDA) up to the WIP limit, and costs nothing when idle.</div>
+          <div class="svc"><b>Runner image</b><i>in Azure Container Registry</i> Claude Agent SDK + the team plugin (skills, hooks, AGENTS.md), Node 24, pnpm 11.5, Playwright browsers, .NET + Sitecore CLI. Each run gets a <b>fresh checkout</b> (this replaces git worktrees).</div>
+          <div class="svc"><b>MCP connectors</b>In the container: Playwright, Next.js DevTools, Storybook. Remote: Marketer, Docs, Vercel, Azure DevOps, ServiceNow, Figma.</div>
+          <div class="svc option"><b>Option: Foundry hosted agents</b>For agents that only work with documents (PRD, review, spec, planner). Decide after the spike.</div>
+        </div>
+
+        <div class="zone" id="z4" style="--zc:var(--z4)">
+          <h2><span class="zn">D</span> Microsoft Foundry</h2>
+          <p class="why">The AI control plane</p>
+          <div class="svc"><b>Model deployments</b><span class="chip m">Large · e.g. Claude Opus</span><span class="chip m">Mid · e.g. Claude Sonnet</span><span class="chip m">Small · e.g. Claude Haiku</span><br>Each agent's size is pinned in configuration. Other models and the model router stay available.</div>
+          <div class="svc"><b>AI gateway</b><i>API Management policies</i> Sets a token-per-minute limit and a monthly quota per agent. Spreads calls across deployments, retries when throttled and logs tokens per agent.</div>
+          <div class="svc"><b>Agent registry + Entra Agent ID</b>Every agent is listed, with its own identity and permissions.</div>
+          <div class="svc"><b>Evaluations</b>A set of past stories is re-run before any model, prompt or skill change goes live.</div>
+        </div>
+
+        <div class="zone" id="z5" style="--zc:var(--z5)">
+          <h2><span class="zn">E</span> Identity &amp; secrets</h2>
+          <p class="why">Used by every box: no personal accounts</p>
+          <div class="svc"><b>Microsoft Entra ID</b>Managed identities for Functions and jobs; Entra Agent ID for agents. Each one gets the least access it needs.</div>
+          <div class="svc"><b>Azure Key Vault</b>GitHub App key, ServiceNow integration user, Azure DevOps service principal, Sitecore automation client, Vercel team token, Figma token. Secrets are rotated and never put in prompts.</div>
+        </div>
+
+        <div class="zone" id="z6" style="--zc:var(--z6)">
+          <h2><span class="zn">F</span> Data &amp; memory</h2>
+          <p class="why">What the platform remembers</p>
+          <div class="svc"><b>Azure Blob Storage · story memory</b>One folder per story: PRD, spec, contract, tasks, bug lists, the authoring guide, prototypes and screenshots.</div>
+          <div class="svc"><b>Azure Cosmos DB · run ledger</b>One record per agent run: story, step, model, tokens, cost, time, result and loop round. It also holds the ServiceNow ↔ ADO ↔ PR links.</div>
+          <div class="svc"><b>App memory stays in the repo</b>AGENTS.md, the blueprint and lessons learned live in GitHub, not in Azure.</div>
+        </div>
+
+        <div class="zone" id="z7" style="--zc:var(--z7)">
+          <h2><span class="zn">G</span> Observability &amp; FinOps</h2>
+          <p class="why">Cost, quality and health in one place</p>
+          <div class="svc"><b>Application Insights + Log Analytics</b>A trace of every agent run (Foundry tracing, OpenTelemetry): steps, tool calls, tokens and errors.</div>
+          <div class="svc"><b>Azure Monitor alerts · Cost Management</b>Alerts for a stuck story, a spike in failures or a growing queue. A budget per environment, alerting at 80%. Tags per agent.</div>
+          <div class="svc"><b>Dashboards</b><i>Azure Workbooks or Power BI</i> Cost per ticket and per agent, lead time, loop rounds, escalations, first-pass success.</div>
+          <div class="svc option"><b>Ops Report Agent</b><span class="chip m">🧮 Small</span> A weekly summary with anything unusual. It reports; people decide.</div>
+        </div>
+
+        <div class="zone" id="z8" style="--zc:var(--z8)">
+          <h2><span class="zn">H</span> Network &amp; platform delivery</h2>
+          <p class="why">Keeping the platform private and repeatable</p>
+          <div class="svc"><b>Virtual network + private endpoints</b>Storage, Key Vault, Service Bus and Foundry are not reachable from the public internet.</div>
+          <div class="svc"><b>NAT Gateway</b>One fixed outgoing IP address, so ServiceNow, Sitecore and others can allow-list the platform.</div>
+          <div class="svc"><b>Infrastructure as code</b><i>Bicep or Terraform</i> One deployment pipeline (for example Azure Pipelines) builds identical dev, test and prod copies of the platform.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- People -->
+    <div class="people">
+      <div class="gate"><b>👤 Backlog owner</b>Sets priority and marks stories ready for agents</div>
+      <div class="gate"><b>👤 Developers as reviewers</b>Approve PRs (gate 15). Smoke-test while trust is built</div>
+      <div class="gate"><b>👤 Content approver</b>Approves publishing (gate 21)</div>
+      <div class="gate"><b>👤 Platform owner</b>Budgets, evals, model choices, incidents</div>
+      <div class="gate future"><b>Later: content authors in Teams</b>Chat with the Intake Agent</div>
+    </div>
+
+    <svg class="edges" id="edges" aria-hidden="true">
+      <defs>
+        <marker id="mk" class="mk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z"/></marker>
+      </defs>
+    </svg>
+  </div>
+  </div>
+
+  <div class="flow">
+    <div><span class="n">1</span><span><b>Tickets and approvals arrive.</b> ServiceNow, Azure DevOps and GitHub send webhooks to API Management, and a timer poll is the backup. The Intake Agent sorts new tickets into ADO stories.</span></div>
+    <div><span class="n">2</span><span><b>A story starts.</b> When the backlog owner marks a story ready, the orchestrator starts one durable orchestration for it.</span></div>
+    <div><span class="n">3</span><span><b>One task per agent step.</b> The orchestrator queues the step, and Container Apps starts a fresh container for it, with many in parallel up to the WIP limit.</span></div>
+    <div><span class="n">4</span><span><b>The agent thinks.</b> It calls its pinned model size through the AI gateway, which enforces its token limits.</span></div>
+    <div><span class="n">5</span><span><b>The agent works.</b> It clones the repo, builds and tests, and opens the PR as the GitHub App. It creates Sitecore items on dev and reads the Vercel preview, all through MCP or CLI.</span></div>
+    <div><span class="n">6</span><span><b>Results are saved.</b> Story memory goes to Blob Storage, and the run record (tokens, cost, result) goes to the run ledger.</span></div>
+    <div><span class="n">7</span><span><b>People can see progress.</b> The orchestrator sets the ADO state, adds comments, attaches the authoring guide and updates the ServiceNow ticket.</span></div>
+    <div><span class="n">8</span><span><b>Everything is measured.</b> Every run and every model call sends traces, token use and cost to monitoring.</span></div>
+    <div><span class="n">9</span><span><b>Gates.</b> At a 👤 gate the orchestrator sleeps until a person approves in ADO or GitHub. That approval arrives as an event (step 1) and wakes the story.</span></div>
+  </div>
+
+  <h2 class="sec">Key questions answered</h2>
+  <div class="panels">
+    <div class="panel teach">
+      <h3>⚖️ 15 tickets at once: do we need a load balancer?</h3>
+      <svg class="scale" viewBox="0 0 420 120" role="img" aria-label="Queue feeding several containers up to a limit">
+        <text x="6" y="14" class="t">15 tickets</text>
+        <rect class="q" x="6" y="22" width="120" height="70" rx="6"/>
+        <text x="66" y="50" text-anchor="middle" class="t">Service Bus</text>
+        <text x="66" y="66" text-anchor="middle">queue waits</text>
+        <text x="66" y="80" text-anchor="middle">safely</text>
+        <line x1="126" y1="57" x2="176" y2="57"/>
+        <text x="180" y="14" class="t">One container per task, up to the WIP limit</text>
+        <rect class="j" x="180" y="22" width="44" height="30" rx="5"/><rect class="j" x="230" y="22" width="44" height="30" rx="5"/><rect class="j" x="280" y="22" width="44" height="30" rx="5"/><rect class="j" x="330" y="22" width="44" height="30" rx="5"/>
+        <rect class="j" x="180" y="60" width="44" height="30" rx="5"/><rect class="j" x="230" y="60" width="44" height="30" rx="5"/><rect class="j off" x="280" y="60" width="44" height="30" rx="5"/><rect class="j off" x="330" y="60" width="44" height="30" rx="5"/>
+        <text x="180" y="110">Dashed = scaled to zero, no cost</text>
+      </svg>
+      <p><b>No classic load balancer is needed for the agents.</b> A load balancer spreads web traffic across servers that are already running. Agent work is different: each ticket is a long job. The standard pattern is a <b>queue plus auto-scaling workers</b>: tickets wait safely in the queue, and Azure starts more containers as the queue grows.</p>
+      <p><b>What really limits parallel work:</b> the model's token quota, which the AI gateway spreads across deployments; the one shared Sitecore dev environment; and how many PRs people can review. The WIP limit is tuned to these.</p>
+      <p>A load balancer (Front Door or Application Gateway) only becomes relevant if a web app is added later, such as an agent control-centre.</p>
+    </div>
+    <div class="panel cost">
+      <h3>🧮 Right-sized models and cost control</h3>
+      <ul>
+        <li><b>Large</b> for judgement on small inputs (PRD review, task planning, contract, blueprint). <b>Mid</b> for code, tests, documents and content (most agents). <b>Small</b> for routine work (intake, PR text, bugs, deploy, performance, weekly report). <b>No model</b> for scripts.</li>
+        <li><b>Pinned per agent</b> in configuration and changed only after evals pass. The model router suits general chat traffic, not a pipeline that needs predictable output.</li>
+        <li><b>Step-up on retry:</b> the third round of a loop may use the next size up.</li>
+        <li><b>Spending brakes:</b> the AI gateway applies a per-agent token-per-minute limit and monthly quota; Azure budgets alert at 80%. Prompt caching cuts the cost of repeated context such as AGENTS.md and skills.</li>
+        <li><b>All model spend</b> goes on the platform's Azure subscription, not on any developer's Claude or Copilot seat.</li>
+      </ul>
+    </div>
+    <div class="panel id">
+      <h3>🪪 Running without anyone's personal account</h3>
+      <ul>
+        <li><b>Agents and Azure services:</b> managed identities and Entra Agent ID. No passwords to leak.</li>
+        <li><b>GitHub:</b> a <b>GitHub App</b>. PRs show the bot as author, and its access is limited to this repo.</li>
+        <li><b>Azure DevOps:</b> a service principal or managed identity.</li>
+        <li><b>ServiceNow:</b> an integration user with only the rights it needs.</li>
+        <li><b>Sitecore:</b> automation client credentials per environment.</li>
+        <li><b>Vercel:</b> a team token. Its MCP uses a personal browser sign-in today, so this needs checking.</li>
+        <li>All secrets are in Key Vault, so when a person leaves, nothing breaks.</li>
+      </ul>
+    </div>
+    <div class="panel obs">
+      <h3>📊 Agent performance: what we measure</h3>
+      <ul>
+        <li><b>Flow:</b> lead time from ready to PR and from ready to done; how long tickets wait at each gate.</li>
+        <li><b>Quality:</b> first-pass success per agent; loop rounds per step; 👤 Needs Human escalations; defects found at preview versus after merge.</li>
+        <li><b>Cost:</b> cost per ticket, per agent and per model size; tokens per step.</li>
+        <li><b>Health:</b> failed runs, queue length, stuck stories, throttling (429) from the gateway.</li>
+        <li><b>Evals:</b> pass rate on the set of past stories, tracked per release of the plugin.</li>
+      </ul>
+    </div>
+    <div class="panel people-p">
+      <h3>👥 Do we need a PM or Scrum Master?</h3>
+      <p><b>For the agents: no Scrum Master.</b> Agents don't need sprints or stand-ups. They pull the next ready story from a prioritised queue (Kanban-style), with the WIP limit as the brake.</p>
+      <p><b>But two human roles are needed:</b> a <b>backlog owner</b> (priority and "ready for agents" can't be delegated to an agent) and a <b>platform owner</b> (budgets, evals, model choices, incidents).</p>
+      <p><b>Building the platform is a real project</b>, with a backlog, sprints, a PM and stakeholders, and it shouldn't be built quietly in the basement. Agents can help with backlog hygiene and the weekly cost report, from rules people set.</p>
+    </div>
+    <div class="panel not">
+      <h3>🚫 Deliberately not in the first version</h3>
+      <ul>
+        <li><b>No custom web app:</b> people work in ADO, GitHub and Azure dashboards, which they already use.</li>
+        <li><b>No load balancer, no Kubernetes (AKS):</b> Container Apps jobs scale on their own.</li>
+        <li><b>No vector database:</b> app memory is in the repo. Azure AI Search over past fixes can come later.</li>
+        <li><b>No GitHub Actions for agents:</b> agents run on Azure. GitHub keeps only the code, PRs and the existing checks.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 class="sec">Options compared</h2>
+  <table>
+    <thead><tr><th style="width:19%">Option</th><th style="width:27%">What runs where</th><th style="width:27%">Strengths</th><th>Watch out for</th></tr></thead>
+    <tbody>
+      <tr class="recommended"><td><b>B · Hybrid on Azure ✅ Recommended</b></td><td>Foundry: models, AI gateway, identities, tracing, evals. Container Apps jobs: agents built on the Claude Agent SDK. Durable Functions: the orchestrator.</td><td>Reuses the v6/v7 design as it is (skills, hooks, plugin, subagents). Agents get a full coding toolchain. The orchestration is predictable and everything is on Azure billing.</td><td>More Azure pieces to own, so infrastructure as code is a must. The Agent SDK's use of Foundry models needs proving in the spike.</td></tr>
+      <tr><td><b>A · Foundry-native</b></td><td>Agents built as Foundry hosted agents (Microsoft Agent Framework); Foundry workflows and routines orchestrate.</td><td>Everything in one Microsoft platform, with built-in identity, tracing and evals. Fits the PM's suggestion closely.</td><td>Skills, hooks and the plugin must be rebuilt in Microsoft's framework. Coding agents need the Node, pnpm and Sitecore CLI toolchain inside hosted agents, which needs proving. Some features are still in preview, so check their status.</td></tr>
+      <tr><td><b>C · Claude Managed Agents</b></td><td>Anthropic hosts and runs the agents.</td><td>The least infrastructure to build.</td><td>Runs outside Azure and isn't billed through Azure, so it conflicts with "host it on Azure".</td></tr>
+      <tr class="ruled"><td><b>D · GitHub-based</b></td><td>GitHub Actions / Claude Code in CI.</td><td>Closest to the current setup.</td><td>Ruled out: the team doesn't want agents running on GitHub.</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    <div class="box">
+      <b>Rules this platform keeps</b>
+      <ul>
+        <li>No step uses a person's account, licence or token budget.</li>
+        <li>Every model call goes through the AI gateway, so limits and cost tracking always apply.</li>
+        <li>Scripts do the mechanics; AI is used only where judgement is needed.</li>
+        <li>No agent merges or publishes without a person's approval.</li>
+        <li>Every change to a model, prompt or skill passes evals first.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <b>To prove in a spike (before building more)</b>
+      <ul>
+        <li>One FE step end to end in a Container Apps job: Claude Agent SDK + plugin + pnpm build + tests, using a Foundry model.</li>
+        <li>The same step as a Foundry hosted agent, to compare.</li>
+        <li>Service sign-in for Sitecore, Vercel, ServiceNow and the ADO MCP server.</li>
+        <li>Cost of one real story at each model size.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <b>Later (not in scope now)</b>
+      <ul>
+        <li>Teams chat intake for content authors (Azure Bot Service)</li>
+        <li>An agent control-centre web app, if dashboards aren't enough</li>
+        <li>Azure AI Search over past tickets and fixes</li>
+        <li>Platforms beyond Sitecore, reusing the same runtime</li>
+      </ul>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const forced = params.get('theme');
+  if (forced === 'light' || forced === 'dark') document.documentElement.dataset.theme = forced;
+
+  const canvas = document.getElementById('canvas');
+  const svg = document.getElementById('edges');
+  const NS = 'http://www.w3.org/2000/svg';
+
+  // route: h (side to side) | up | down. Vertical routes run at the centre of the `at` box, shifted by dx.
+  const EDGES = [
+    { n: 1, f: 'sources', t: 'z1', route: 'down', at: 'z1' },
+    { n: 2, f: 'z1', t: 'z2', route: 'h' },
+    { n: 3, f: 'z2', t: 'z3', route: 'h' },
+    { n: 4, f: 'z3', t: 'z4', route: 'h' },
+    { n: 5, f: 'z3', t: 'delivery', route: 'up', at: 'z3' },
+    { n: 6, f: 'z2', t: 'z6', route: 'down', at: 'z2', dx: -30 },
+    { n: 7, f: 'z2', t: 'sources', route: 'up', at: 'z2' },
+    { n: 8, f: 'z3', t: 'z7', route: 'down', at: 'z3' }
+  ];
+
+  function box(id) {
+    const r = document.getElementById(id).getBoundingClientRect();
+    const c = canvas.getBoundingClientRect();
+    const l = r.left - c.left, t = r.top - c.top;
+    return { l, t, r: l + r.width, b: t + r.height, cx: l + r.width / 2, cy: t + r.height / 2 };
+  }
+
+  function route(e) {
+    const S = box(e.f), T = box(e.t);
+    if (e.route === 'h') {
+      const y = Math.max(S.t, T.t) + 34;
+      return [{ x: S.r, y }, { x: T.l, y }];
+    }
+    const x = box(e.at).cx + (e.dx || 0);
+    if (e.route === 'down') return [{ x, y: S.b }, { x, y: T.t }];
+    return [{ x, y: S.t }, { x, y: T.b }];
+  }
+
+  function draw() {
+    svg.querySelectorAll('.e, .num').forEach(n => n.remove());
+    svg.setAttribute('width', canvas.scrollWidth);
+    svg.setAttribute('height', canvas.scrollHeight);
+    for (const e of EDGES) {
+      const pts = route(e);
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('d', pts.map((p, i) => (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' '));
+      path.setAttribute('class', 'e');
+      path.setAttribute('marker-end', 'url(#mk)');
+      svg.appendChild(path);
+      // number badge in the middle of the longest segment
+      let best = 0, mx = 0, my = 0;
+      for (let i = 1; i < pts.length; i++) {
+        const len = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+        if (len > best) { best = len; mx = (pts[i].x + pts[i - 1].x) / 2; my = (pts[i].y + pts[i - 1].y) / 2; }
+      }
+      const g = document.createElementNS(NS, 'g');
+      g.setAttribute('class', 'num');
+      g.setAttribute('transform', `translate(${mx},${my})`);
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('r', 10);
+      const t = document.createElementNS(NS, 'text');
+      t.textContent = e.n;
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('dominant-baseline', 'central');
+      g.appendChild(c); g.appendChild(t);
+      svg.appendChild(g);
+    }
+  }
+
+  window.addEventListener('resize', draw);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  window.addEventListener('load', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

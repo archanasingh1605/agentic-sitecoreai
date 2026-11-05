@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentic Delivery Platform: Architecture Vision</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --surface: #ffffff; --text: #1d2330; --muted: #5d6677; --border: #d9dee7;
+    --edge: #3b4252; --azure: #0b5cad; --azure-bg: #eef5fd; --future: #8a93a3;
+    --c-web: #2563eb; --c-db: #0f766e; --c-agent: #7c3aed; --c-ai: #be185d; --c-svc: #475569;
+    --c-gate: #b4235a; --c-ext: #0369a1; --c-people: #ca8a04;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151c; --surface: #1c212b; --text: #e7eaf0; --muted: #9aa3b5; --border: #2e3644;
+      --edge: #c5ccd8; --azure: #7cb8ff; --azure-bg: #152233; --future: #7d8698;
+      --c-web: #60a5fa; --c-db: #5eead4; --c-agent: #a78bfa; --c-ai: #f9a8d4; --c-svc: #94a3b8;
+      --c-gate: #f472b6; --c-ext: #7dd3fc; --c-people: #facc15;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151c; --surface: #1c212b; --text: #e7eaf0; --muted: #9aa3b5; --border: #2e3644;
+    --edge: #c5ccd8; --azure: #7cb8ff; --azure-bg: #152233; --future: #7d8698;
+    --c-web: #60a5fa; --c-db: #5eead4; --c-agent: #a78bfa; --c-ai: #f9a8d4; --c-svc: #94a3b8;
+    --c-gate: #f472b6; --c-ext: #7dd3fc; --c-people: #facc15;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .page { padding: 24px 16px 32px; max-width: 1600px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0; max-width: 980px; }
+  .badges { display: flex; gap: 8px; margin: 10px 0 14px; flex-wrap: wrap; }
+  .badge { font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); }
+  .badge.ver { color: var(--text); font-weight: 600; }
+  .scroll { overflow-x: auto; }
+  svg.arch { display: block; width: 100%; min-width: 1200px; height: auto; }
+
+  /* SVG styling */
+  .arch text { font-family: inherit; fill: var(--text); }
+  .arch .t { font-size: 14px; font-weight: 700; }
+  .arch .s { font-size: 11.5px; fill: var(--muted); }
+  .arch .k { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; fill: var(--muted); }
+  .arch .box { fill: var(--surface); stroke: var(--border); stroke-width: 1.2; }
+  .arch .bar { stroke-width: 4; }
+  .arch .azure { fill: var(--azure-bg); stroke: var(--azure); stroke-width: 2; }
+  .arch .tag { fill: var(--azure); }
+  .arch .tagt { fill: #fff; font-size: 12.5px; font-weight: 700; }
+  :root[data-theme="dark"] .arch .tagt { fill: #0b1220; }
+  .arch .group { fill: none; stroke: var(--border); stroke-width: 1.4; stroke-dasharray: 5 4; }
+  .arch .pool { fill: color-mix(in srgb, var(--c-agent) 6%, var(--surface)); stroke: var(--c-agent); stroke-width: 2; }
+  .arch .pod { fill: var(--surface); stroke: color-mix(in srgb, var(--c-agent) 45%, var(--border)); stroke-width: 1.2; }
+  .arch .pod.more { fill: none; stroke-dasharray: 5 4; }
+  .arch .chip { fill: var(--surface); stroke: var(--border); }
+  .arch .chip.on { fill: var(--c-agent); stroke: var(--c-agent); }
+  .arch .chipt { font-size: 10.5px; font-weight: 600; fill: var(--muted); }
+  .arch .chipt.on { fill: #fff; }
+  :root[data-theme="dark"] .arch .chipt.on { fill: #12151c; }
+  .arch .status { font-size: 10.5px; font-weight: 700; fill: var(--c-agent); }
+  .arch .status.gate { fill: var(--c-gate); }
+  .arch .model { fill: color-mix(in srgb, var(--c-ai) 8%, var(--surface)); stroke: color-mix(in srgb, var(--c-ai) 40%, transparent); }
+  .arch .future { opacity: 0.7; }
+  .arch .future .box { stroke-dasharray: 5 4; }
+  .arch .e { stroke: var(--edge); stroke-width: 1.8; fill: none; }
+  .arch .mk { fill: var(--edge); }
+  .arch .el { font-size: 11px; fill: var(--muted); font-weight: 600; }
+  .arch .blk { fill: color-mix(in srgb, var(--c-svc) 25%, var(--surface)); stroke: var(--c-svc); stroke-width: 0.8; }
+  .web { color: var(--c-web); stroke: var(--c-web); }
+  .db { color: var(--c-db); stroke: var(--c-db); }
+  .agent { color: var(--c-agent); stroke: var(--c-agent); }
+  .ai { color: var(--c-ai); stroke: var(--c-ai); }
+  .svc { color: var(--c-svc); stroke: var(--c-svc); }
+  .ext { color: var(--c-ext); stroke: var(--c-ext); }
+  .ppl { color: var(--c-people); stroke: var(--c-people); }
+
+  .notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+  .note { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--muted); }
+  .note b { color: var(--text); }
+  .note > b:first-child { display: block; margin-bottom: 3px; }
+  @media (max-width: 1000px) { .notes { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Agentic Delivery Platform: Architecture Vision</h1>
+  <p class="sub">What gets built on Azure: one web app, the databases and storage, and a pool of AI agents that grows and shrinks with the number of tickets. Here, 15 tickets are being worked on at once, each by its own set of agents.</p>
+  <div class="badges">
+    <span class="badge ver">Version 1 · 31 Oct 2026</span>
+    <span class="badge ver">Created by Archana Singh</span>
+    <span class="badge">Draft for PM review</span>
+    <span class="badge">Details: Agentic Delivery Flow v7 · Azure platform architecture v1</span>
+  </div>
+
+  <div class="scroll">
+  <svg class="arch" viewBox="0 0 1600 960" role="img" aria-label="Architecture vision: people and ticket systems on the left, the Azure platform in the middle with a web app, orchestrator, agent pool, AI models and databases, and delivery systems on the right">
+    <defs>
+      <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0 0 L10 5 L0 10 Z"/></marker>
+      <!-- Generic icons (40 x 40), drawn in currentColor -->
+      <symbol id="i-person" viewBox="0 0 40 40"><circle cx="20" cy="13" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M6 36 C6 26 13 22 20 22 C27 22 34 26 34 36" fill="none" stroke="currentColor" stroke-width="2.4"/></symbol>
+      <symbol id="i-web" viewBox="0 0 40 40"><rect x="3" y="6" width="34" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="3" y1="14" x2="37" y2="14" stroke="currentColor" stroke-width="2.4"/><circle cx="8" cy="10" r="1.6" fill="currentColor"/><circle cx="13" cy="10" r="1.6" fill="currentColor"/><rect x="8" y="19" width="10" height="10" rx="1.5" fill="currentColor" opacity="0.35"/><line x1="22" y1="21" x2="32" y2="21" stroke="currentColor" stroke-width="2"/><line x1="22" y1="27" x2="30" y2="27" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-db" viewBox="0 0 40 40"><ellipse cx="20" cy="9" rx="14" ry="5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M6 9 V31 C6 34 12 36 20 36 C28 36 34 34 34 31 V9" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M6 20 C6 23 12 25 20 25 C28 25 34 23 34 20" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-files" viewBox="0 0 40 40"><path d="M5 10 H15 L18 13 H35 V33 H5 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><line x1="11" y1="21" x2="29" y2="21" stroke="currentColor" stroke-width="2"/><line x1="11" y1="27" x2="24" y2="27" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-agent" viewBox="0 0 40 40"><rect x="7" y="12" width="26" height="22" rx="6" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="15" cy="22" r="2.6" fill="currentColor"/><circle cx="25" cy="22" r="2.6" fill="currentColor"/><line x1="15" y1="29" x2="25" y2="29" stroke="currentColor" stroke-width="2"/><line x1="20" y1="12" x2="20" y2="6" stroke="currentColor" stroke-width="2.4"/><circle cx="20" cy="5" r="2.4" fill="currentColor"/></symbol>
+      <symbol id="i-gear" viewBox="0 0 40 40"><circle cx="20" cy="20" r="11" fill="none" stroke="currentColor" stroke-width="6" stroke-dasharray="4.3 4.3"/><circle cx="20" cy="20" r="8" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="20" cy="20" r="3" fill="currentColor"/></symbol>
+      <symbol id="i-queue" viewBox="0 0 40 40"><rect x="3" y="12" width="7" height="16" rx="1.5" fill="currentColor"/><rect x="12" y="12" width="7" height="16" rx="1.5" fill="currentColor" opacity="0.75"/><rect x="21" y="12" width="7" height="16" rx="1.5" fill="currentColor" opacity="0.5"/><path d="M31 20 H38 M34 16 L38 20 L34 24" fill="none" stroke="currentColor" stroke-width="2.4"/></symbol>
+      <symbol id="i-spark" viewBox="0 0 40 40"><path d="M20 3 L23.5 16.5 L37 20 L23.5 23.5 L20 37 L16.5 23.5 L3 20 L16.5 16.5 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><circle cx="32" cy="8" r="2.5" fill="currentColor"/></symbol>
+      <symbol id="i-globe" viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="2.4"/><ellipse cx="20" cy="20" rx="6.5" ry="15" fill="none" stroke="currentColor" stroke-width="2"/><line x1="5" y1="20" x2="35" y2="20" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-gateway" viewBox="0 0 40 40"><rect x="15" y="5" width="10" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M3 13 H13 M3 27 H13 M27 20 H37 M33 16 L37 20 L33 24" fill="none" stroke="currentColor" stroke-width="2.4"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 40 40"><path d="M20 4 L34 9 V19 C34 28 27 34 20 37 C13 34 6 28 6 19 V9 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><circle cx="20" cy="17" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 29 C14 24 17 23 20 23 C23 23 26 24 27 29" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-key" viewBox="0 0 40 40"><circle cx="13" cy="20" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M20 20 H36 M30 20 V26 M35 20 V25" fill="none" stroke="currentColor" stroke-width="2.4"/></symbol>
+      <symbol id="i-box" viewBox="0 0 40 40"><path d="M20 4 L35 11 V29 L20 36 L5 29 V11 Z M5 11 L20 18 L35 11 M20 18 V36" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></symbol>
+      <symbol id="i-chart" viewBox="0 0 40 40"><path d="M5 35 H36" stroke="currentColor" stroke-width="2.4"/><rect x="8" y="22" width="6" height="11" fill="currentColor" opacity="0.5"/><rect x="17" y="14" width="6" height="19" fill="currentColor" opacity="0.75"/><rect x="26" y="7" width="6" height="26" fill="currentColor"/></symbol>
+      <symbol id="i-ticket" viewBox="0 0 40 40"><path d="M4 11 H36 V17 A3 3 0 0 0 36 23 V29 H4 V23 A3 3 0 0 0 4 17 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><line x1="14" y1="11" x2="14" y2="29" stroke="currentColor" stroke-width="2" stroke-dasharray="2 3"/></symbol>
+      <symbol id="i-code" viewBox="0 0 40 40"><path d="M14 11 L5 20 L14 29 M26 11 L35 20 L26 29 M23 8 L17 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 40 40"><path d="M5 8 H35 V27 H16 L9 33 V27 H5 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></symbol>
+    </defs>
+
+    <!-- ============ LEFT: people and ticket systems ============ -->
+    <text class="k" x="12" y="38">PEOPLE</text>
+    <g><use href="#i-person" class="ppl" x="12" y="52" width="34" height="34"/><text class="t" x="54" y="66">Backlog owner</text><text class="s" x="54" y="82">Prioritises, marks ready</text></g>
+    <g><use href="#i-person" class="ppl" x="12" y="104" width="34" height="34"/><text class="t" x="54" y="118">Developers</text><text class="s" x="54" y="134">Approve PRs, smoke-test</text></g>
+    <g><use href="#i-person" class="ppl" x="12" y="156" width="34" height="34"/><text class="t" x="54" y="170">PM &amp; platform owner</text><text class="s" x="54" y="186">Dashboards, budgets</text></g>
+    <g><use href="#i-person" class="ppl" x="12" y="208" width="34" height="34"/><text class="t" x="54" y="222">Content approver</text><text class="s" x="54" y="238">Approves publishing</text></g>
+
+    <text class="k" x="12" y="440">TICKETS IN</text>
+    <g><rect class="box" x="10" y="452" width="196" height="64" rx="10"/><use href="#i-ticket" class="ext" x="20" y="465" width="36" height="36"/><text class="t" x="64" y="480">ServiceNow</text><text class="s" x="64" y="497">Bugs, enhancements</text></g>
+    <g><rect class="box" x="10" y="536" width="196" height="64" rx="10"/><use href="#i-ticket" class="ext" x="20" y="549" width="36" height="36"/><text class="t" x="64" y="564">Azure DevOps</text><text class="s" x="64" y="581">Stories, states, bugs</text></g>
+    <g class="future"><rect class="box" x="10" y="620" width="196" height="64" rx="10"/><use href="#i-chat" class="ext" x="20" y="633" width="36" height="36"/><text class="t" x="64" y="648">Microsoft Teams</text><text class="s" x="64" y="665">Chat intake · later</text></g>
+
+    <!-- ============ AZURE boundary ============ -->
+    <rect class="azure" x="236" y="20" width="1104" height="928" rx="16"/>
+    <rect class="tag" x="252" y="8" width="356" height="24" rx="12"/>
+    <text class="tagt" x="266" y="25">☁ Microsoft Azure · the agent platform</text>
+
+    <!-- Band 1: web and entry -->
+    <text class="k" x="256" y="58">WEB APP &amp; ENTRY POINTS</text>
+    <g><rect class="box" x="256" y="70" width="204" height="132" rx="10"/><line class="bar svc" x1="256" y1="74" x2="460" y2="74"/>
+      <use href="#i-globe" class="svc" x="268" y="86" width="34" height="34"/><text class="t" x="310" y="100">Azure Front Door</text><text class="s" x="310" y="116">+ firewall (WAF)</text>
+      <text class="s" x="268" y="148">Load balancer in front</text><text class="s" x="268" y="164">of the web app: fast,</text><text class="s" x="268" y="180">secure access worldwide</text></g>
+    <g><rect class="box" x="500" y="70" width="270" height="132" rx="10"/><line class="bar web" x1="500" y1="74" x2="770" y2="74"/>
+      <use href="#i-web" class="web" x="512" y="86" width="36" height="36"/><text class="t" x="556" y="100">Agent Control Centre</text><text class="s" x="556" y="116">Web app · Azure App Service</text>
+      <text class="s" x="512" y="148">Ticket queue · live agents · approvals</text><text class="s" x="512" y="164">Cost and quality dashboards</text><text class="s" x="512" y="180">Reads the database below</text></g>
+    <g><rect class="box" x="810" y="70" width="240" height="132" rx="10"/><line class="bar svc" x1="810" y1="74" x2="1050" y2="74"/>
+      <use href="#i-gateway" class="svc" x="822" y="86" width="34" height="34"/><text class="t" x="866" y="100">API Management</text><text class="s" x="866" y="116">Secure API gateway</text>
+      <text class="s" x="822" y="148">Entry point for ticket webhooks</text><text class="s" x="822" y="164">AI gateway: token limits and</text><text class="s" x="822" y="180">cost tracking per agent</text></g>
+    <g><rect class="box" x="1090" y="70" width="230" height="132" rx="10"/><line class="bar svc" x1="1090" y1="74" x2="1320" y2="74"/>
+      <use href="#i-shield" class="svc" x="1102" y="86" width="34" height="34"/><text class="t" x="1146" y="100">Microsoft Entra ID</text><text class="s" x="1146" y="116">Identity and access</text>
+      <text class="s" x="1102" y="148">Service identities for every</text><text class="s" x="1102" y="164">app and agent; no personal</text><text class="s" x="1102" y="180">accounts or token budgets</text></g>
+
+    <!-- Band 2: orchestration and agents -->
+    <text class="k" x="256" y="262">ORCHESTRATION &amp; AI AGENTS</text>
+    <g><rect class="box" x="256" y="272" width="204" height="100" rx="10"/><line class="bar agent" x1="256" y1="276" x2="460" y2="276"/>
+      <use href="#i-agent" class="agent" x="268" y="288" width="34" height="34"/><text class="t" x="310" y="302">Intake Agent</text><text class="s" x="310" y="318">Always on</text>
+      <text class="s" x="268" y="346">Sorts new tickets and creates</text><text class="s" x="268" y="361">the stories for the agent team</text></g>
+    <g><rect class="box" x="256" y="392" width="204" height="140" rx="10"/><line class="bar svc" x1="256" y1="396" x2="460" y2="396"/>
+      <use href="#i-gear" class="svc" x="268" y="408" width="34" height="34"/><text class="t" x="310" y="422">Orchestrator</text><text class="s" x="310" y="438">Azure Durable Functions</text>
+      <text class="s" x="268" y="468">One workflow per ticket:</text><text class="s" x="268" y="484">order, loops, 👤 approvals</text><text class="s" x="268" y="500">Sets ADO states · no AI cost</text><text class="s" x="268" y="516">Hosted in a Function App</text></g>
+    <g><rect class="box" x="256" y="552" width="204" height="120" rx="10"/><line class="bar svc" x1="256" y1="556" x2="460" y2="556"/>
+      <use href="#i-queue" class="svc" x="268" y="568" width="34" height="34"/><text class="t" x="310" y="582">Task queue</text><text class="s" x="310" y="598">Azure Service Bus</text>
+      <text class="s" x="268" y="626">Tickets wait safely in line</text>
+      <rect class="blk" x="268" y="640" width="9" height="16" rx="2"/><rect class="blk" x="280" y="640" width="9" height="16" rx="2"/><rect class="blk" x="292" y="640" width="9" height="16" rx="2"/><rect class="blk" x="304" y="640" width="9" height="16" rx="2"/><rect class="blk" x="316" y="640" width="9" height="16" rx="2"/><rect class="blk" x="328" y="640" width="9" height="16" rx="2"/><rect class="blk" x="340" y="640" width="9" height="16" rx="2"/><rect class="blk" x="352" y="640" width="9" height="16" rx="2"/><rect class="blk" x="364" y="640" width="9" height="16" rx="2"/><rect class="blk" x="376" y="640" width="9" height="16" rx="2"/><text class="s" x="392" y="653">… 15</text></g>
+
+    <!-- Agent pool -->
+    <rect class="pool" x="500" y="272" width="550" height="400" rx="14"/>
+    <use href="#i-agent" class="agent" x="514" y="282" width="30" height="30"/>
+    <text class="t" x="552" y="296" style="font-size:15px">Agent pool · Azure Container Apps</text>
+    <text class="s" x="552" y="313">Grows from 0 to many containers with the queue · each agent runs in its own container</text>
+
+    <!-- pods: 15 tickets in parallel (5 shown + 10 more) -->
+    <g>
+      <rect class="pod" x="515" y="330" width="165" height="150" rx="10"/><text class="t" x="525" y="350" style="font-size:12.5px">Ticket 1</text><text class="status" x="525" y="366">In Development</text>
+      <rect class="chip" x="523" y="378" width="47" height="24" rx="5"/><text class="chipt" x="546.5" y="394" text-anchor="middle">PRD</text>
+      <rect class="chip" x="574" y="378" width="47" height="24" rx="5"/><text class="chipt" x="597.5" y="394" text-anchor="middle">Spec</text>
+      <rect class="chip" x="625" y="378" width="47" height="24" rx="5"/><text class="chipt" x="648.5" y="394" text-anchor="middle">Plan</text>
+      <rect class="chip on" x="523" y="408" width="47" height="24" rx="5"/><text class="chipt on" x="546.5" y="424" text-anchor="middle">FE</text>
+      <rect class="chip on" x="574" y="408" width="47" height="24" rx="5"/><text class="chipt on" x="597.5" y="424" text-anchor="middle">BE</text>
+      <rect class="chip" x="625" y="408" width="47" height="24" rx="5"/><text class="chipt" x="648.5" y="424" text-anchor="middle">Review</text>
+      <rect class="chip" x="523" y="438" width="47" height="24" rx="5"/><text class="chipt" x="546.5" y="454" text-anchor="middle">Test</text>
+      <rect class="chip" x="574" y="438" width="47" height="24" rx="5"/><text class="chipt" x="597.5" y="454" text-anchor="middle">QA</text>
+      <rect class="chip" x="625" y="438" width="47" height="24" rx="5"/><text class="chipt" x="648.5" y="454" text-anchor="middle">PR</text>
+    </g>
+    <g>
+      <rect class="pod" x="692" y="330" width="165" height="150" rx="10"/><text class="t" x="702" y="350" style="font-size:12.5px">Ticket 2</text><text class="status" x="702" y="366">Testing</text>
+      <rect class="chip" x="700" y="378" width="47" height="24" rx="5"/><text class="chipt" x="723.5" y="394" text-anchor="middle">PRD</text>
+      <rect class="chip" x="751" y="378" width="47" height="24" rx="5"/><text class="chipt" x="774.5" y="394" text-anchor="middle">Spec</text>
+      <rect class="chip" x="802" y="378" width="47" height="24" rx="5"/><text class="chipt" x="825.5" y="394" text-anchor="middle">Plan</text>
+      <rect class="chip" x="700" y="408" width="47" height="24" rx="5"/><text class="chipt" x="723.5" y="424" text-anchor="middle">FE</text>
+      <rect class="chip" x="751" y="408" width="47" height="24" rx="5"/><text class="chipt" x="774.5" y="424" text-anchor="middle">BE</text>
+      <rect class="chip" x="802" y="408" width="47" height="24" rx="5"/><text class="chipt" x="825.5" y="424" text-anchor="middle">Review</text>
+      <rect class="chip on" x="700" y="438" width="47" height="24" rx="5"/><text class="chipt on" x="723.5" y="454" text-anchor="middle">Test</text>
+      <rect class="chip" x="751" y="438" width="47" height="24" rx="5"/><text class="chipt" x="774.5" y="454" text-anchor="middle">QA</text>
+      <rect class="chip" x="802" y="438" width="47" height="24" rx="5"/><text class="chipt" x="825.5" y="454" text-anchor="middle">PR</text>
+    </g>
+    <g>
+      <rect class="pod" x="869" y="330" width="165" height="150" rx="10"/><text class="t" x="879" y="350" style="font-size:12.5px">Ticket 3</text><text class="status" x="879" y="366">Preview Testing</text>
+      <rect class="chip" x="877" y="378" width="47" height="24" rx="5"/><text class="chipt" x="900.5" y="394" text-anchor="middle">PRD</text>
+      <rect class="chip" x="928" y="378" width="47" height="24" rx="5"/><text class="chipt" x="951.5" y="394" text-anchor="middle">Spec</text>
+      <rect class="chip" x="979" y="378" width="47" height="24" rx="5"/><text class="chipt" x="1002.5" y="394" text-anchor="middle">Plan</text>
+      <rect class="chip" x="877" y="408" width="47" height="24" rx="5"/><text class="chipt" x="900.5" y="424" text-anchor="middle">FE</text>
+      <rect class="chip" x="928" y="408" width="47" height="24" rx="5"/><text class="chipt" x="951.5" y="424" text-anchor="middle">BE</text>
+      <rect class="chip" x="979" y="408" width="47" height="24" rx="5"/><text class="chipt" x="1002.5" y="424" text-anchor="middle">Review</text>
+      <rect class="chip" x="877" y="438" width="47" height="24" rx="5"/><text class="chipt" x="900.5" y="454" text-anchor="middle">Test</text>
+      <rect class="chip on" x="928" y="438" width="47" height="24" rx="5"/><text class="chipt on" x="951.5" y="454" text-anchor="middle">QA</text>
+      <rect class="chip" x="979" y="438" width="47" height="24" rx="5"/><text class="chipt" x="1002.5" y="454" text-anchor="middle">PR</text>
+    </g>
+    <g>
+      <rect class="pod" x="515" y="496" width="165" height="150" rx="10"/><text class="t" x="525" y="516" style="font-size:12.5px">Ticket 4</text><text class="status" x="525" y="532">Drafting Requirements</text>
+      <rect class="chip on" x="523" y="544" width="47" height="24" rx="5"/><text class="chipt on" x="546.5" y="560" text-anchor="middle">PRD</text>
+      <rect class="chip" x="574" y="544" width="47" height="24" rx="5"/><text class="chipt" x="597.5" y="560" text-anchor="middle">Spec</text>
+      <rect class="chip" x="625" y="544" width="47" height="24" rx="5"/><text class="chipt" x="648.5" y="560" text-anchor="middle">Plan</text>
+      <rect class="chip" x="523" y="574" width="47" height="24" rx="5"/><text class="chipt" x="546.5" y="590" text-anchor="middle">FE</text>
+      <rect class="chip" x="574" y="574" width="47" height="24" rx="5"/><text class="chipt" x="597.5" y="590" text-anchor="middle">BE</text>
+      <rect class="chip" x="625" y="574" width="47" height="24" rx="5"/><text class="chipt" x="648.5" y="590" text-anchor="middle">Review</text>
+      <rect class="chip" x="523" y="604" width="47" height="24" rx="5"/><text class="chipt" x="546.5" y="620" text-anchor="middle">Test</text>
+      <rect class="chip" x="574" y="604" width="47" height="24" rx="5"/><text class="chipt" x="597.5" y="620" text-anchor="middle">QA</text>
+      <rect class="chip" x="625" y="604" width="47" height="24" rx="5"/><text class="chipt" x="648.5" y="620" text-anchor="middle">PR</text>
+    </g>
+    <g>
+      <rect class="pod" x="692" y="496" width="165" height="150" rx="10"/><text class="t" x="702" y="516" style="font-size:12.5px">Ticket 5</text><text class="status gate" x="702" y="532">👤 Awaiting PR Approval</text>
+      <rect class="chip" x="700" y="544" width="47" height="24" rx="5"/><text class="chipt" x="723.5" y="560" text-anchor="middle">PRD</text>
+      <rect class="chip" x="751" y="544" width="47" height="24" rx="5"/><text class="chipt" x="774.5" y="560" text-anchor="middle">Spec</text>
+      <rect class="chip" x="802" y="544" width="47" height="24" rx="5"/><text class="chipt" x="825.5" y="560" text-anchor="middle">Plan</text>
+      <rect class="chip" x="700" y="574" width="47" height="24" rx="5"/><text class="chipt" x="723.5" y="590" text-anchor="middle">FE</text>
+      <rect class="chip" x="751" y="574" width="47" height="24" rx="5"/><text class="chipt" x="774.5" y="590" text-anchor="middle">BE</text>
+      <rect class="chip" x="802" y="574" width="47" height="24" rx="5"/><text class="chipt" x="825.5" y="590" text-anchor="middle">Review</text>
+      <rect class="chip" x="700" y="604" width="47" height="24" rx="5"/><text class="chipt" x="723.5" y="620" text-anchor="middle">Test</text>
+      <rect class="chip" x="751" y="604" width="47" height="24" rx="5"/><text class="chipt" x="774.5" y="620" text-anchor="middle">QA</text>
+      <rect class="chip" x="802" y="604" width="47" height="24" rx="5"/><text class="chipt" x="825.5" y="620" text-anchor="middle">PR</text>
+    </g>
+    <g>
+      <rect class="pod more" x="869" y="496" width="165" height="150" rx="10"/>
+      <text class="t" x="951.5" y="552" text-anchor="middle" style="font-size:20px">+ 10 more</text>
+      <text class="s" x="951.5" y="574" text-anchor="middle">Tickets 6–15, each with</text>
+      <text class="s" x="951.5" y="590" text-anchor="middle">its own agents, all running</text>
+      <text class="s" x="951.5" y="606" text-anchor="middle">in parallel (up to a limit)</text>
+    </g>
+    <text class="s" x="515" y="663"><tspan font-weight="700" fill="var(--c-agent)">■</tspan> working now   ·   every container runs the same agent image with the team plugin</text>
+
+    <!-- Foundry -->
+    <g><rect class="box" x="1090" y="272" width="230" height="400" rx="10"/><line class="bar ai" x1="1090" y1="276" x2="1320" y2="276"/>
+      <use href="#i-spark" class="ai" x="1102" y="288" width="34" height="34"/><text class="t" x="1146" y="302">Microsoft Foundry</text><text class="s" x="1146" y="318">AI models for the agents</text>
+      <rect class="model" x="1102" y="340" width="206" height="48" rx="8"/><text class="t" x="1114" y="360" style="font-size:12.5px">Large · e.g. Claude Opus</text><text class="s" x="1114" y="377">Planning and reviews</text>
+      <rect class="model" x="1102" y="398" width="206" height="48" rx="8"/><text class="t" x="1114" y="418" style="font-size:12.5px">Mid · e.g. Claude Sonnet</text><text class="s" x="1114" y="435">Code, tests, documents</text>
+      <rect class="model" x="1102" y="456" width="206" height="48" rx="8"/><text class="t" x="1114" y="476" style="font-size:12.5px">Small · e.g. Claude Haiku</text><text class="s" x="1114" y="493">Routine tasks</text>
+      <text class="s" x="1102" y="532">Each agent uses the smallest</text><text class="s" x="1102" y="548">model that does its job well</text>
+      <text class="s" x="1102" y="580">Also: agent registry and</text><text class="s" x="1102" y="596">quality checks (evals)</text>
+      <text class="s" x="1102" y="628">Paid from the platform's own</text><text class="s" x="1102" y="644">Azure budget</text></g>
+
+    <!-- Band 3: data, storage, monitoring -->
+    <text class="k" x="256" y="712">DATABASE, STORAGE &amp; MONITORING</text>
+    <g><rect class="box" x="256" y="724" width="200" height="200" rx="10"/><line class="bar db" x1="256" y1="728" x2="456" y2="728"/>
+      <use href="#i-db" class="db" x="332" y="742" width="48" height="48"/><text class="t" x="356" y="812" text-anchor="middle">Azure Cosmos DB</text><text class="s" x="356" y="830" text-anchor="middle">The database</text>
+      <text class="s" x="356" y="856" text-anchor="middle">Tickets, status, every</text><text class="s" x="356" y="872" text-anchor="middle">agent run and its cost</text><text class="s" x="356" y="888" text-anchor="middle">Read by the web app</text></g>
+    <g><rect class="box" x="472" y="724" width="200" height="200" rx="10"/><line class="bar db" x1="472" y1="728" x2="672" y2="728"/>
+      <use href="#i-files" class="db" x="548" y="742" width="48" height="48"/><text class="t" x="572" y="812" text-anchor="middle">Azure Blob Storage</text><text class="s" x="572" y="830" text-anchor="middle">File storage</text>
+      <text class="s" x="572" y="856" text-anchor="middle">Story memory: PRD, spec,</text><text class="s" x="572" y="872" text-anchor="middle">contract, authoring guide,</text><text class="s" x="572" y="888" text-anchor="middle">screenshots</text></g>
+    <g><rect class="box" x="688" y="724" width="200" height="200" rx="10"/><line class="bar svc" x1="688" y1="728" x2="888" y2="728"/>
+      <use href="#i-box" class="svc" x="764" y="742" width="48" height="48"/><text class="t" x="788" y="812" text-anchor="middle">Container Registry</text><text class="s" x="788" y="830" text-anchor="middle">Agent image</text>
+      <text class="s" x="788" y="856" text-anchor="middle">The team plugin lives here:</text><text class="s" x="788" y="872" text-anchor="middle">agents, skills, hooks,</text><text class="s" x="788" y="888" text-anchor="middle">AGENTS.md + dev tools</text></g>
+    <g><rect class="box" x="904" y="724" width="200" height="200" rx="10"/><line class="bar svc" x1="904" y1="728" x2="1104" y2="728"/>
+      <use href="#i-key" class="svc" x="980" y="742" width="48" height="48"/><text class="t" x="1004" y="812" text-anchor="middle">Azure Key Vault</text><text class="s" x="1004" y="830" text-anchor="middle">Secrets</text>
+      <text class="s" x="1004" y="856" text-anchor="middle">Tokens for GitHub, ADO,</text><text class="s" x="1004" y="872" text-anchor="middle">ServiceNow, Sitecore,</text><text class="s" x="1004" y="888" text-anchor="middle">Vercel and Figma</text></g>
+    <g><rect class="box" x="1120" y="724" width="200" height="200" rx="10"/><line class="bar svc" x1="1120" y1="728" x2="1320" y2="728"/>
+      <use href="#i-chart" class="svc" x="1196" y="742" width="48" height="48"/><text class="t" x="1220" y="812" text-anchor="middle">Monitoring</text><text class="s" x="1220" y="830" text-anchor="middle">App Insights + Log Analytics</text>
+      <text class="s" x="1220" y="856" text-anchor="middle">Traces of every agent,</text><text class="s" x="1220" y="872" text-anchor="middle">cost, alerts, budgets</text><text class="s" x="1220" y="888" text-anchor="middle">Feeds the dashboards</text></g>
+
+    <!-- ============ RIGHT: delivery systems ============ -->
+    <text class="k" x="1372" y="38">WHERE THE WORK LANDS</text>
+    <g><rect class="box" x="1370" y="50" width="220" height="80" rx="10"/><use href="#i-code" class="ext" x="1382" y="70" width="36" height="36"/><text class="t" x="1428" y="82">GitHub</text><text class="s" x="1428" y="99">Code and PRs (code host)</text><text class="s" x="1428" y="114">Sonar + CodeQL checks</text></g>
+    <g><rect class="box" x="1370" y="146" width="220" height="80" rx="10"/><use href="#i-web" class="ext" x="1382" y="166" width="36" height="36"/><text class="t" x="1428" y="178">Vercel</text><text class="s" x="1428" y="195">Hosts the Next.js site</text><text class="s" x="1428" y="210">Preview URL per PR</text></g>
+    <g><rect class="box" x="1370" y="242" width="220" height="80" rx="10"/><use href="#i-db" class="ext" x="1382" y="262" width="36" height="36"/><text class="t" x="1428" y="274">Sitecore AI</text><text class="s" x="1428" y="291">XM Cloud dev environment</text><text class="s" x="1428" y="306">Content + Marketer MCP</text></g>
+    <g><rect class="box" x="1370" y="338" width="220" height="80" rx="10"/><use href="#i-spark" class="ext" x="1382" y="358" width="36" height="36"/><text class="t" x="1428" y="370">Figma · Docs MCP</text><text class="s" x="1428" y="387">Designs and Sitecore</text><text class="s" x="1428" y="402">developer documentation</text></g>
+
+    <!-- Legend -->
+    <text class="k" x="1372" y="480">KEY</text>
+    <g><use href="#i-web" class="web" x="1372" y="492" width="28" height="28"/><text class="s" x="1408" y="511">Web app (people use it)</text></g>
+    <g><use href="#i-db" class="db" x="1372" y="530" width="28" height="28"/><text class="s" x="1408" y="549">Database / storage</text></g>
+    <g><use href="#i-agent" class="agent" x="1372" y="568" width="28" height="28"/><text class="s" x="1408" y="587">AI agent (runs in a container)</text></g>
+    <g><use href="#i-spark" class="ai" x="1372" y="606" width="28" height="28"/><text class="s" x="1408" y="625">AI models</text></g>
+    <g><use href="#i-gear" class="svc" x="1372" y="644" width="28" height="28"/><text class="s" x="1408" y="663">Managed Azure service</text></g>
+    <g><use href="#i-person" class="ppl" x="1372" y="682" width="28" height="28"/><text class="s" x="1408" y="701">People</text></g>
+    <g class="future"><rect class="box" x="1374" y="722" width="24" height="18" rx="4"/><text class="s" x="1408" y="736">Later, not in scope now</text></g>
+    <g><line class="e" x1="1372" y1="762" x2="1398" y2="762" marker-end="url(#arw)"/><text class="s" x="1408" y="766">Request or data flow</text></g>
+
+    <!-- ============ ARROWS ============ -->
+    <path class="e" d="M216 150 H254" marker-end="url(#arw)"/>
+    <text class="el" x="164" y="154">browser</text>
+    <path class="e" d="M460 136 H498" marker-end="url(#arw)"/>
+    <path class="e" d="M600 202 V234 H480 V462 H462" marker-end="url(#arw)"/>
+    <text class="el" x="488" y="250">approvals</text>
+    <path class="e" d="M206 484 H222 V322 H254" marker-end="url(#arw)"/>
+    <path class="e" d="M206 568 H222 V484"/>
+    <text class="el" transform="translate(232,470) rotate(-90)" text-anchor="middle">new tickets</text>
+    <path class="e" d="M358 372 V390" marker-end="url(#arw)"/>
+    <path class="e" d="M358 532 V550" marker-end="url(#arw)"/>
+    <path class="e" d="M460 612 H498" marker-end="url(#arw)"/>
+    <path class="e" d="M1050 470 H1088" marker-end="url(#arw)"/>
+    <path class="e" d="M960 272 V240 H1368" marker-end="url(#arw)"/>
+    <text class="el" x="1100" y="232">code · PRs · Sitecore items · deploys</text>
+    <path class="e" d="M780 672 V722" marker-end="url(#arw)"/>
+    <text class="el" x="788" y="700">story memory · run records</text>
+    <path class="e" d="M1205 672 V722" marker-end="url(#arw)"/>
+    <text class="el" x="1213" y="700">traces · tokens</text>
+  </svg>
+  </div>
+
+  <div class="notes">
+    <div class="note"><b>🌐 What is the web app?</b>The <b>Agent Control Centre</b> (Azure App Service) is the one screen people use. It shows the ticket queue, which agents are working on what, approvals waiting, and cost and quality. Azure Front Door sits in front as the load balancer and firewall.</div>
+    <div class="note"><b>📦 Where does the plugin run?</b>Not in the web app. The team plugin (agents, skills, hooks, AGENTS.md) is packaged into one <b>agent image</b> in the Container Registry. Every agent container in the pool starts from that image, so all agents use the same tested version.</div>
+    <div class="note"><b>⚡ How do 15 tickets run at once?</b>Each ticket gets its own workflow in the orchestrator. Its agent tasks wait in the queue, and the agent pool starts one container per task, so 15 tickets means many agents working side by side. When the queue is empty, the pool shrinks to zero and costs nothing.</div>
+  </div>
+</div>
+</body>
+</html>
