@@ -11,6 +11,17 @@ Each revision is saved as a new pair of files (`agentic-flow-vN.html` + `agentic
 
 > **Client names removed (2026-10-25):** every version's title is now just "Agentic Delivery Flow", with the client and project names taken out. All PNGs were re-exported. Nothing else in the diagrams changed.
 
+## Agentic architecture v2.12 · 2026-11-06
+
+`agentic-architecture-v2.12.html` (+ `.png`, 2× export). A shorter page. v2.11 is kept unchanged.
+
+- **Removed the footer line.** The "Created by Archana Singh" badge at the top stays.
+- **The "Status in Azure DevOps and ServiceNow" table is now one paragraph.** The ADO states are defined in the Agentic Delivery Flow v8, so the paragraph points there instead of repeating them. It keeps the ServiceNow mapping, which isn't in the flow:
+  - Open when the ADO story is created.
+  - In progress while the flow works or waits on the team's own approvals.
+  - On hold while it waits on someone outside the team.
+  - Resolved when the story is Done.
+
 ## Agentic architecture v2.11 · 2026-11-06
 
 `agentic-architecture-v2.11.html` (+ `.png`, 2× export). A tidier page. v2.10 is kept unchanged.
