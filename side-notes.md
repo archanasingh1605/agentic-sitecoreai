@@ -36,3 +36,7 @@ Raised during the chunk 1 walkthrough and not yet answered:
 - [ ] *(new)* Does each story also need its own base-component pick, or does the one shared blueprint cover every story?
 - [ ] *(new)* The repo's CLAUDE.md says Jira (<TICKET-ID>) but the project uses Azure DevOps. Update CLAUDE.md later?
 - [ ] **Step numbering:** Blueprint Agent 4A / Spec ready 4B (tentative), and where the Ticketing Agent sits.
+
+## 4. Parked for later
+
+- [ ] **Audience intelligence:** came up in the discussion about the Azure platform. It's left out of the workflow diagram and the architecture for now; revisit later and confirm what it means here.
